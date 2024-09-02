@@ -1,0 +1,6 @@
+@TaggyAppBackend_HostAddress = http://localhost:5262
+
+GET {{TaggyAppBackend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
