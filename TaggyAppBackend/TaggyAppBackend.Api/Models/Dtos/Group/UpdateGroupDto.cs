@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TaggyAppBackend.Api.Models.Dtos.Group;
 
-public class CreateGroupDto
+public class UpdateGroupDto
 {
     [MaxLength(255)]
     public string Name { get; set; } = null!;

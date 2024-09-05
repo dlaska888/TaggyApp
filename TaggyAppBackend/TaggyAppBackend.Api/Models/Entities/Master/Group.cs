@@ -1,14 +1,19 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
+using Sieve.Attributes;
 
 namespace TaggyAppBackend.Api.Models.Entities.Master;
 
 public class Group : Entity
 {
-    [MaxLength(255)] public string Name { get; set; } = null!;
+    [Sieve(CanFilter = true, CanSort = true)]
+    [MaxLength(255)]
+    public string Name { get; set; } = null!;
+
+    [Sieve(CanFilter = true)]
     [MaxLength(255)] public string? Description { get; set; }
 
-    public List<TaggyUser> Users { get; } = [];
-    public List<Tag> Tags { get; } = [];
-    public List<File> Files { get; } = [];
+    public virtual ICollection<GroupUser> GroupUsers { get; } = [];
+    public virtual ICollection<Tag> Tags { get; } = [];
+    public virtual ICollection<File> Files { get; } = [];
 }

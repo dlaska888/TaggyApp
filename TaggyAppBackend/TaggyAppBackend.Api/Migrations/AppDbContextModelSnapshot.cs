@@ -37,36 +37,6 @@ namespace TaggyAppBackend.Api.Migrations
                     b.ToTable("FileTag");
                 });
 
-            modelBuilder.Entity("GroupTag", b =>
-                {
-                    b.Property<string>("GroupsId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("TagsId")
-                        .HasColumnType("text");
-
-                    b.HasKey("GroupsId", "TagsId");
-
-                    b.HasIndex("TagsId");
-
-                    b.ToTable("GroupTag");
-                });
-
-            modelBuilder.Entity("GroupTaggyUser", b =>
-                {
-                    b.Property<string>("GroupsId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("UsersId")
-                        .HasColumnType("text");
-
-                    b.HasKey("GroupsId", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("GroupTaggyUser");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -199,19 +169,25 @@ namespace TaggyAppBackend.Api.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("TagTaggyUser", b =>
+            modelBuilder.Entity("TaggyAppBackend.Api.Models.Entities.GroupUser", b =>
                 {
-                    b.Property<string>("TagsId")
+                    b.Property<string>("UserId")
                         .HasColumnType("text");
 
-                    b.Property<string>("UsersId")
+                    b.Property<string>("GroupId")
                         .HasColumnType("text");
 
-                    b.HasKey("TagsId", "UsersId");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
 
-                    b.HasIndex("UsersId");
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
 
-                    b.ToTable("TagTaggyUser");
+                    b.HasKey("UserId", "GroupId");
+
+                    b.HasIndex("GroupId");
+
+                    b.ToTable("GroupUsers");
                 });
 
             modelBuilder.Entity("TaggyAppBackend.Api.Models.Entities.Master.File", b =>
@@ -224,7 +200,8 @@ namespace TaggyAppBackend.Api.Migrations
 
                     b.Property<string>("CreatorId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
 
                     b.Property<string>("Description")
                         .HasMaxLength(255)
@@ -232,7 +209,8 @@ namespace TaggyAppBackend.Api.Migrations
 
                     b.Property<string>("GroupId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -283,12 +261,19 @@ namespace TaggyAppBackend.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<string>("GroupId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("GroupId");
 
                     b.ToTable("Tags");
                 });
@@ -382,36 +367,6 @@ namespace TaggyAppBackend.Api.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("GroupTag", b =>
-                {
-                    b.HasOne("TaggyAppBackend.Api.Models.Entities.Master.Group", null)
-                        .WithMany()
-                        .HasForeignKey("GroupsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("TaggyAppBackend.Api.Models.Entities.Master.Tag", null)
-                        .WithMany()
-                        .HasForeignKey("TagsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("GroupTaggyUser", b =>
-                {
-                    b.HasOne("TaggyAppBackend.Api.Models.Entities.Master.Group", null)
-                        .WithMany()
-                        .HasForeignKey("GroupsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("TaggyAppBackend.Api.Models.Entities.Master.TaggyUser", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -463,19 +418,23 @@ namespace TaggyAppBackend.Api.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TagTaggyUser", b =>
+            modelBuilder.Entity("TaggyAppBackend.Api.Models.Entities.GroupUser", b =>
                 {
-                    b.HasOne("TaggyAppBackend.Api.Models.Entities.Master.Tag", null)
-                        .WithMany()
-                        .HasForeignKey("TagsId")
+                    b.HasOne("TaggyAppBackend.Api.Models.Entities.Master.Group", "Group")
+                        .WithMany("GroupUsers")
+                        .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TaggyAppBackend.Api.Models.Entities.Master.TaggyUser", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
+                    b.HasOne("TaggyAppBackend.Api.Models.Entities.Master.TaggyUser", "User")
+                        .WithMany("GroupUsers")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Group");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TaggyAppBackend.Api.Models.Entities.Master.File", b =>
@@ -497,14 +456,31 @@ namespace TaggyAppBackend.Api.Migrations
                     b.Navigation("Group");
                 });
 
+            modelBuilder.Entity("TaggyAppBackend.Api.Models.Entities.Master.Tag", b =>
+                {
+                    b.HasOne("TaggyAppBackend.Api.Models.Entities.Master.Group", "Group")
+                        .WithMany("Tags")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+                });
+
             modelBuilder.Entity("TaggyAppBackend.Api.Models.Entities.Master.Group", b =>
                 {
                     b.Navigation("Files");
+
+                    b.Navigation("GroupUsers");
+
+                    b.Navigation("Tags");
                 });
 
             modelBuilder.Entity("TaggyAppBackend.Api.Models.Entities.Master.TaggyUser", b =>
                 {
                     b.Navigation("Files");
+
+                    b.Navigation("GroupUsers");
                 });
 #pragma warning restore 612, 618
         }

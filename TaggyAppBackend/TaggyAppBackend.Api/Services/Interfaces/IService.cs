@@ -1,5 +1,6 @@
 using Sieve.Models;
 using TaggyAppBackend.Api.Models;
+using TaggyAppBackend.Api.Models.Dtos;
 using TaggyAppBackend.Api.Models.Dtos.Interfaces;
 
 namespace TaggyAppBackend.Api.Services.Interfaces;

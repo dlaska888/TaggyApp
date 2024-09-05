@@ -1,8 +1,8 @@
 using TaggyAppBackend.Api.Models.Enums;
 
-namespace TaggyAppBackend.Api.Models.Dtos.UserGroup;
+namespace TaggyAppBackend.Api.Models.Dtos.GroupUser;
 
-public class UpdateUserGroupDto
+public class UpdateGroupUserDto
 {
     public GroupRole Role { get; set; }
 }

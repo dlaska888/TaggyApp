@@ -5,23 +5,40 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Sieve.Models;
+using Sieve.Services;
 using TaggyAppBackend.Api.Filters;
 using TaggyAppBackend.Api.Helpers;
 using TaggyAppBackend.Api.Helpers.Interfaces;
+using TaggyAppBackend.Api.MappingProfiles;
 using TaggyAppBackend.Api.MiddleWare;
 using TaggyAppBackend.Api.Models.Entities;
 using TaggyAppBackend.Api.Models.Entities.Master;
 using TaggyAppBackend.Api.Models.Options;
 using TaggyAppBackend.Api.Providers;
+using TaggyAppBackend.Api.Services;
 using TaggyAppBackend.Api.Services.Interfaces;
+using TaggyAppBackend.Api.Sieve;
 
 var builder = WebApplication.CreateBuilder(args);
 
 #region Services
 
+builder.Services.Configure<SieveOptions>(builder.Configuration.GetSection("Sieve"));
+builder.Services.AddScoped<ISieveProcessor, AppSieveProcessor>();
+builder.Services.AddScoped<ISieveCustomFilterMethods, SieveCustomFilterMethods>();
+builder.Services.AddScoped<IPagingHelper, PagingHelper>();
+
 builder.Services.AddScoped<IAuthHelper, AuthHelper>();
 builder.Services.AddScoped<IAuthContextProvider, AuthContextProvider>();
 builder.Services.AddScoped<ErrorHandlingMiddleWare>();
+
+builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IGroupService, GroupService>();
+builder.Services.AddScoped<IGroupUserService, GroupUserService>();
+builder.Services.AddScoped<ITagService, TagService>();
+
+builder.Services.AddAutoMapper(cfg => { cfg.AddProfile<DtoMappingProfile>(); });
 
 #endregion
 

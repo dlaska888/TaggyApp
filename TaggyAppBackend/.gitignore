@@ -5,3 +5,5 @@ riderModule.iml
 /_ReSharper.Caches/
 .idea
 TaggyAppBackend.sln.DotSettings.user
+appsettings.Development.json
+appsettings.json

@@ -69,19 +69,6 @@ namespace TaggyAppBackend.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Tags",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "text", nullable: false),
-                    Name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Tags", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
@@ -195,8 +182,8 @@ namespace TaggyAppBackend.Api.Migrations
                     Name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     Description = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     Path = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: false),
-                    CreatorId = table.Column<string>(type: "text", nullable: false),
-                    GroupId = table.Column<string>(type: "text", nullable: false),
+                    CreatorId = table.Column<string>(type: "character varying(36)", maxLength: 36, nullable: false),
+                    GroupId = table.Column<string>(type: "character varying(36)", maxLength: 36, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)
                 },
                 constraints: table =>
@@ -217,73 +204,47 @@ namespace TaggyAppBackend.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "GroupTaggyUser",
+                name: "GroupUsers",
                 columns: table => new
                 {
-                    GroupsId = table.Column<string>(type: "text", nullable: false),
-                    UsersId = table.Column<string>(type: "text", nullable: false)
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    GroupId = table.Column<string>(type: "text", nullable: false),
+                    Role = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GroupTaggyUser", x => new { x.GroupsId, x.UsersId });
+                    table.PrimaryKey("PK_GroupUsers", x => new { x.UserId, x.GroupId });
                     table.ForeignKey(
-                        name: "FK_GroupTaggyUser_AspNetUsers_UsersId",
-                        column: x => x.UsersId,
+                        name: "FK_GroupUsers_AspNetUsers_UserId",
+                        column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_GroupTaggyUser_Groups_GroupsId",
-                        column: x => x.GroupsId,
+                        name: "FK_GroupUsers_Groups_GroupId",
+                        column: x => x.GroupId,
                         principalTable: "Groups",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "GroupTag",
+                name: "Tags",
                 columns: table => new
                 {
-                    GroupsId = table.Column<string>(type: "text", nullable: false),
-                    TagsId = table.Column<string>(type: "text", nullable: false)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    GroupId = table.Column<string>(type: "character varying(36)", maxLength: 36, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GroupTag", x => new { x.GroupsId, x.TagsId });
+                    table.PrimaryKey("PK_Tags", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_GroupTag_Groups_GroupsId",
-                        column: x => x.GroupsId,
+                        name: "FK_Tags_Groups_GroupId",
+                        column: x => x.GroupId,
                         principalTable: "Groups",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_GroupTag_Tags_TagsId",
-                        column: x => x.TagsId,
-                        principalTable: "Tags",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "TagTaggyUser",
-                columns: table => new
-                {
-                    TagsId = table.Column<string>(type: "text", nullable: false),
-                    UsersId = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TagTaggyUser", x => new { x.TagsId, x.UsersId });
-                    table.ForeignKey(
-                        name: "FK_TagTaggyUser_AspNetUsers_UsersId",
-                        column: x => x.UsersId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_TagTaggyUser_Tags_TagsId",
-                        column: x => x.TagsId,
-                        principalTable: "Tags",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -365,19 +326,14 @@ namespace TaggyAppBackend.Api.Migrations
                 column: "TagsId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GroupTag_TagsId",
-                table: "GroupTag",
-                column: "TagsId");
+                name: "IX_GroupUsers_GroupId",
+                table: "GroupUsers",
+                column: "GroupId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GroupTaggyUser_UsersId",
-                table: "GroupTaggyUser",
-                column: "UsersId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TagTaggyUser_UsersId",
-                table: "TagTaggyUser",
-                column: "UsersId");
+                name: "IX_Tags_GroupId",
+                table: "Tags",
+                column: "GroupId");
         }
 
         /// <inheritdoc />
@@ -402,13 +358,7 @@ namespace TaggyAppBackend.Api.Migrations
                 name: "FileTag");
 
             migrationBuilder.DropTable(
-                name: "GroupTag");
-
-            migrationBuilder.DropTable(
-                name: "GroupTaggyUser");
-
-            migrationBuilder.DropTable(
-                name: "TagTaggyUser");
+                name: "GroupUsers");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

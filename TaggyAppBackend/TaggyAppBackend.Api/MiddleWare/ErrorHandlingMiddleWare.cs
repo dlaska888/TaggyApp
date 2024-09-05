@@ -30,6 +30,11 @@ public class ErrorHandlingMiddleWare(
             result = GetResult(context, StatusCodes.Status401Unauthorized, e.Message);
             resultException = e;
         }
+        catch (ForbiddenException e)
+        {
+            result = GetResult(context, StatusCodes.Status403Forbidden, e.Message);
+            resultException = e;
+        }
         catch (NotFoundException e)
         {
             result = GetResult(context, StatusCodes.Status404NotFound, e.Message);

@@ -6,7 +6,7 @@ namespace TaggyAppBackend.Api.Models.Dtos.Auth;
 public class RegisterDto
 {
     [DefaultValue("username")]
-    public string Username { get; set; } = null!;
+    public string UserName { get; set; } = null!;
     [DefaultValue("email@email.com")]
     public string Email { get; set; } = null!;
     [DefaultValue("!QAZ3wsx1234")]

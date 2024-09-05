@@ -8,7 +8,9 @@ using Microsoft.IdentityModel.Tokens;
 using TaggyAppBackend.Api.Exceptions;
 using TaggyAppBackend.Api.Helpers.Interfaces;
 using TaggyAppBackend.Api.Models.Dtos.Auth;
+using TaggyAppBackend.Api.Models.Entities;
 using TaggyAppBackend.Api.Models.Entities.Master;
+using TaggyAppBackend.Api.Models.Enums;
 using TaggyAppBackend.Api.Models.Options;
 
 namespace TaggyAppBackend.Api.Helpers;
@@ -16,6 +18,7 @@ namespace TaggyAppBackend.Api.Helpers;
 public class AuthHelper(
     UserManager<TaggyUser> userManager,
     SignInManager<TaggyUser> signInManager,
+    AppDbContext dbContext,
     IOptions<JwtOptions> jwtSettings)
     : IAuthHelper
 {
@@ -39,7 +42,7 @@ public class AuthHelper(
         var refreshToken = GenerateRefreshToken();
 
         user.RefreshToken = refreshToken;
-        user.RefreshTokenExp = DateTime.Now.AddDays(Convert.ToDouble(_jwtOptions.RefreshExpirationTime));
+        user.RefreshTokenExp = DateTime.UtcNow.AddDays(Convert.ToDouble(_jwtOptions.RefreshExpirationTime));
         await userManager.UpdateAsync(user);
 
         return new TokenDto { AccessToken = token, RefreshToken = refreshToken };
@@ -47,7 +50,7 @@ public class AuthHelper(
 
     public async Task<bool> SignUp(RegisterDto dto)
     {
-        var user = new TaggyUser { UserName = dto.Username, Email = dto.Email, CreatedAt = DateTime.Now};
+        var user = new TaggyUser { UserName = dto.UserName, Email = dto.Email };
         var result = await userManager.CreateAsync(user, dto.Password);
 
         if (result.Errors.Any())
@@ -58,6 +61,12 @@ public class AuthHelper(
             throw new BadRequestException("Failed to create user account.");
         }
 
+        var group = new Group { Name = "Default" };
+
+        group.GroupUsers.Add(new GroupUser { UserId = user.Id, GroupId = group.Id, Role = GroupRole.Owner });
+        dbContext.Groups.Add(group);
+        await dbContext.SaveChangesAsync();
+
         // await SendConfirmationEmail(user.Email, user);
 
         return result.Succeeded;
@@ -66,14 +75,14 @@ public class AuthHelper(
     public async Task<TokenDto> Refresh(string refreshToken)
     {
         var user = userManager.Users.SingleOrDefault(u =>
-            u.RefreshToken == refreshToken && u.RefreshTokenExp > DateTime.Now);
+            u.RefreshToken == refreshToken && u.RefreshTokenExp > DateTime.UtcNow);
 
         if (user == null)
         {
             throw new UnauthorizedException("Invalid refresh token");
         }
 
-        if (user.RefreshTokenExp < DateTime.Now)
+        if (user.RefreshTokenExp < DateTime.UtcNow)
         {
             throw new UnauthorizedException("Refresh token expired");
         }
@@ -91,7 +100,7 @@ public class AuthHelper(
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Key));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expires = DateTime.Now.AddMinutes(_jwtOptions.ExpirationTime);
+        var expires = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpirationTime);
 
         var token = new JwtSecurityToken(
             _jwtOptions.Issuer,
@@ -132,7 +141,7 @@ public class AuthHelper(
         }
 
         var result = await userManager.ConfirmEmailAsync(user, token);
-        
+
         if (result.Errors.Any())
             throw new BadRequestException(result.Errors.First().Description);
 
