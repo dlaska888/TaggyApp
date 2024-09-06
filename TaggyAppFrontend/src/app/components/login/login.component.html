@@ -1,0 +1,22 @@
+<div class="flex flex-column justify-content-center align-items-center h-screen">
+   <p-card styleClass="login-form" class="flex justify-content-center">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+         <div class="flex flex-column gap-5">
+            <h1 class="mt-0">Login</h1>
+            <p-floatLabel>
+               <input type="text" pInputText title="userName" formControlName="userName" />
+               <label for="userName">Username</label>
+               <small class="p-error block"
+                  *ngIf="loginForm.get('userName')?.invalid && loginForm.get('userName')?.dirty">Username is
+                  required</small>
+            </p-floatLabel>
+            <p-floatLabel>
+               <input type="password" pInputText title="password" formControlName="password" />
+               <label for="password">Password</label>
+            </p-floatLabel>
+            <button title="submit" pButton type="submit" label="Submit" [disabled]="loginForm.invalid"></button>
+            <asl-google-signin-button type='standard'></asl-google-signin-button>
+         </div>
+      </form>
+   </p-card>
+</div>

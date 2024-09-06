@@ -7,11 +7,13 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Sieve.Models;
 using Sieve.Services;
+using TaggyAppBackend.Api.AutoMapper;
 using TaggyAppBackend.Api.Filters;
+using TaggyAppBackend.Api.Handlers;
+using TaggyAppBackend.Api.Handlers.Interfaces;
 using TaggyAppBackend.Api.Helpers;
 using TaggyAppBackend.Api.Helpers.Interfaces;
-using TaggyAppBackend.Api.MappingProfiles;
-using TaggyAppBackend.Api.MiddleWare;
+using TaggyAppBackend.Api.Middleware;
 using TaggyAppBackend.Api.Models.Entities;
 using TaggyAppBackend.Api.Models.Entities.Master;
 using TaggyAppBackend.Api.Models.Options;
@@ -19,6 +21,7 @@ using TaggyAppBackend.Api.Providers;
 using TaggyAppBackend.Api.Services;
 using TaggyAppBackend.Api.Services.Interfaces;
 using TaggyAppBackend.Api.Sieve;
+using GoogleOptions = TaggyAppBackend.Api.Models.Options.SocialAuth.GoogleOptions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,7 +32,8 @@ builder.Services.AddScoped<ISieveProcessor, AppSieveProcessor>();
 builder.Services.AddScoped<ISieveCustomFilterMethods, SieveCustomFilterMethods>();
 builder.Services.AddScoped<IPagingHelper, PagingHelper>();
 
-builder.Services.AddScoped<IAuthHelper, AuthHelper>();
+builder.Services.AddScoped<IJwtHandler, JwtHandler>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAuthContextProvider, AuthContextProvider>();
 builder.Services.AddScoped<ErrorHandlingMiddleWare>();
 
@@ -75,18 +79,21 @@ builder.Services.Configure<IdentityOptions>(o =>
 
 #region JWT Authentication and Authorization
 
-var jwtSettingSection = builder.Configuration.GetSection("JwtOptions");
-var jwtSettings = jwtSettingSection.Get<JwtOptions>();
-builder.Services.Configure<JwtOptions>(jwtSettingSection);
+var jwtOptionsSection = builder.Configuration.GetSection("JwtOptions");
+var jwtOptions = jwtOptionsSection.Get<JwtOptions>();
+builder.Services.Configure<JwtOptions>(jwtOptionsSection);
+
+var googleOptionsSection = builder.Configuration.GetSection("SocialAuth:Google");
+builder.Services.Configure<GoogleOptions>(googleOptionsSection);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidIssuer = jwtSettings!.Issuer,
-            ValidAudience = jwtSettings!.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings!.Key)),
+            ValidIssuer = jwtOptions!.Issuer,
+            ValidAudience = jwtOptions!.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions!.Key)),
 
             ValidateIssuer = true,
             ValidateAudience = true,

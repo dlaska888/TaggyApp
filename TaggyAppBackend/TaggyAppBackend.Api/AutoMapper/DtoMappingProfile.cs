@@ -8,7 +8,7 @@ using TaggyAppBackend.Api.Models.Entities;
 using TaggyAppBackend.Api.Models.Entities.Master;
 using File = TaggyAppBackend.Api.Models.Entities.Master.File;
 
-namespace TaggyAppBackend.Api.MappingProfiles;
+namespace TaggyAppBackend.Api.AutoMapper;
 
 public class DtoMappingProfile : Profile
 {

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Sieve.Exceptions;
 using TaggyAppBackend.Api.Exceptions;
 
-namespace TaggyAppBackend.Api.MiddleWare;
+namespace TaggyAppBackend.Api.Middleware;
 
 public class ErrorHandlingMiddleWare(
     ILogger<ErrorHandlingMiddleWare> logger,

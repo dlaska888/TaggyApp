@@ -1,11 +1,12 @@
 ﻿using TaggyAppBackend.Api.Models.Dtos.Auth;
 
-namespace TaggyAppBackend.Api.Helpers.Interfaces;
+namespace TaggyAppBackend.Api.Services.Interfaces;
 
-public interface IAuthHelper
+public interface IAuthService
 {
-    Task<TokenDto> SignIn(LoginDto dto);
     Task<bool> SignUp(RegisterDto dto);
+    Task<TokenDto> SignIn(LoginDto dto);
+    Task<TokenDto> GoogleSignIn(ExternalAuthDto dto);
     Task<TokenDto> Refresh(string refreshToken);
     Task<bool> ConfirmEmail(string userId, string token);
 }
