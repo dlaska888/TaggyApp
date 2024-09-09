@@ -2,12 +2,12 @@ import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
 @Component({
-  selector: 'app-home',
+  selector: 'app-index',
   standalone: true,
   imports: [RouterModule],
-  templateUrl: './home.component.html',
-  styleUrl: './home.component.scss'
+  templateUrl: './index.component.html',
+  styleUrl: './index.component.scss'
 })
-export class HomeComponent {
+export class IndexComponent {
 
 }
