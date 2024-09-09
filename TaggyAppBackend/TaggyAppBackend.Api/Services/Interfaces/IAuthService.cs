@@ -4,7 +4,7 @@ namespace TaggyAppBackend.Api.Services.Interfaces;
 
 public interface IAuthService
 {
-    Task<bool> SignUp(RegisterDto dto);
+    Task<TokenDto> SignUp(RegisterDto dto);
     Task<TokenDto> SignIn(LoginDto dto);
     Task<TokenDto> GoogleSignIn(ExternalAuthDto dto);
     Task<TokenDto> Refresh(string refreshToken);

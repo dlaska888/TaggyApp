@@ -6,25 +6,25 @@ import { CardModule } from 'primeng/card';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import {
   SocialLoginModule,
-  SocialAuthServiceConfig,
   GoogleSigninButtonModule,
 } from '@abacritt/angularx-social-login';
-import { GoogleLoginProvider } from '@abacritt/angularx-social-login';
 import { SocialAuthService } from '@abacritt/angularx-social-login';
 import {
-  AbstractControl,
   FormControl,
   FormGroup,
   ReactiveFormsModule,
-  ValidationErrors,
-  ValidatorFn,
   Validators,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { ExternalAuthDto } from '../../models/auth/externalAuthDto';
+import { ExternalAuthDto } from '../../models/dtos/auth/externalAuthDto';
 import { passwordMatchValidator } from '../../validators/passwordMatch.validator';
 import { passwordValidator } from '../../validators/password.validator';
 import { TransConstant } from '../../constants/trans.constant';
+import { AuthService } from '../../services/authService';
+import { HttpResponse } from '@angular/common/http';
+import { TokenDto } from '../../models/dtos/auth/tokenDto';
+import { PathConstant } from '../../constants/path.constant';
+import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-register',
@@ -38,14 +38,20 @@ import { TransConstant } from '../../constants/trans.constant';
     FloatLabelModule,
     SocialLoginModule,
     GoogleSigninButtonModule,
+    RouterModule
   ],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
 })
 export class RegisterComponent {
+
+  pathConst = PathConstant;
+
   constructor(
     private api: TaggyAppApiService,
-    private authService: SocialAuthService
+    private socialAuthService: SocialAuthService,
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   registerForm = new FormGroup(
@@ -68,23 +74,23 @@ export class RegisterComponent {
     passwordMatchValidator('password', 'confirmPassword')
   );
 
-  user!: any;
-  loggedIn!: boolean;
-
   ngOnInit() {
-    this.authService.authState.subscribe((user) => {
-      this.user = user;
-      this.loggedIn = user != null;
-      if (user) {
-        const externalAuth: ExternalAuthDto = {
+    this.tryNavigateToDashboard();
+    this.socialAuthService.authState.subscribe((user) => {
+      if (!user) return;
+      this.api
+        .googleLogin({
           provider: user.provider,
           idToken: user.idToken,
-        };
-        this.api.googleLogin(externalAuth).subscribe((authToken: any) => {
-          console.log(authToken);
+        })
+        .subscribe(async (response: HttpResponse<TokenDto>) => {
+          if (!response.ok || !response.body) {
+            console.error(response);
+            return;
+          }
+          this.authService.setTokens(response.body);
+          this.tryNavigateToDashboard();
         });
-      }
-      console.log(user);
     });
   }
 
@@ -96,19 +102,14 @@ export class RegisterComponent {
         password: this.registerForm.value.password!,
         confirmPassword: this.registerForm.value.confirmPassword!,
       })
-      .subscribe((response) => {
-        console.log(response);
+      .subscribe((response: HttpResponse<TokenDto>) => {
+        if (!response.ok || !response.body) {
+          console.error(response);
+          return;
+        }
+        this.authService.setTokens(response.body);
+        this.tryNavigateToDashboard();
       });
-  }
-
-  onGoogleLogin() {
-    this.authService
-      .signIn(GoogleLoginProvider.PROVIDER_ID)
-      .then((x: any) => console.log(x));
-  }
-
-  signOut(): void {
-    this.authService.signOut();
   }
 
   getPasswordErrors() {
@@ -119,6 +120,14 @@ export class RegisterComponent {
         message: TransConstant.PASSWORD[transKey],
         isSet: control?.hasError(TransConstant.PASSWORD[transKey]),
       };
+    });
+  }
+
+  private tryNavigateToDashboard() {
+    this.authService.tryAuthenticateUser().then((isAuthenticated) => {
+      if (isAuthenticated) {
+        this.router.navigate([PathConstant.DASHBOARD]);
+      }
     });
   }
 }

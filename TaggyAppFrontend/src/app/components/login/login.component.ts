@@ -1,5 +1,5 @@
 import { TaggyAppApiService } from './../../services/taggyAppApi.service';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -18,7 +18,14 @@ import {
   Validators,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { ExternalAuthDto } from '../../models/auth/externalAuthDto';
+import { ExternalAuthDto } from '../../models/dtos/auth/externalAuthDto';
+import { LocalStorageService } from '../../services/localStorageService';
+import { AuthService } from '../../services/authService';
+import { HttpResponse } from '@angular/common/http';
+import { TokenDto } from '../../models/dtos/auth/tokenDto';
+import { LocalStorageConstant } from '../../constants/localStorage.constant';
+import { Router, RouterModule } from '@angular/router';
+import { PathConstant } from '../../constants/path.constant';
 
 @Component({
   selector: 'app-login',
@@ -32,14 +39,20 @@ import { ExternalAuthDto } from '../../models/auth/externalAuthDto';
     FloatLabelModule,
     SocialLoginModule,
     GoogleSigninButtonModule,
+    RouterModule
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
+
+  pathConst = PathConstant;
+
   constructor(
     private api: TaggyAppApiService,
-    private authService: SocialAuthService
+    private socialAuthService: SocialAuthService,
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   loginForm = new FormGroup({
@@ -53,23 +66,23 @@ export class LoginComponent {
     ]),
   });
 
-  user!: any;
-  loggedIn!: boolean;
-
   ngOnInit() {
-    this.authService.authState.subscribe((user) => {
-      this.user = user;
-      this.loggedIn = user != null;
-      if (user) {
-        const externalAuth: ExternalAuthDto = {
+    this.tryNavigateToDashboard();
+    this.socialAuthService.authState.subscribe((user) => {
+      if (!user) return;
+      this.api
+        .googleLogin({
           provider: user.provider,
           idToken: user.idToken,
-        };
-        this.api.googleLogin(externalAuth).subscribe((authToken: any) => {
-          console.log(authToken);
+        })
+        .subscribe(async (response: HttpResponse<TokenDto>) => {
+          if (!response.ok || !response.body) {
+            console.error(response);
+            return;
+          }
+          this.authService.setTokens(response.body);
+          this.tryNavigateToDashboard();
         });
-      }
-      console.log(user);
     });
   }
 
@@ -79,18 +92,21 @@ export class LoginComponent {
         userName: this.loginForm.value.userName!,
         password: this.loginForm.value.password!,
       })
-      .subscribe((response) => {
-        console.log(response);
+      .subscribe((response: HttpResponse<TokenDto>) => {
+        if (!response.ok || !response.body) {
+          console.error(response);
+          return;
+        }
+        this.authService.setTokens(response.body);
+        this.tryNavigateToDashboard();
       });
   }
 
-  onGoogleLogin() {
-    this.authService
-      .signIn(GoogleLoginProvider.PROVIDER_ID)
-      .then((x: any) => console.log(x));
-  }
-
-  signOut(): void {
-    this.authService.signOut();
+  private tryNavigateToDashboard() {
+    this.authService.tryAuthenticateUser().then((isAuthenticated) => {
+      if (isAuthenticated) {
+        this.router.navigate([PathConstant.DASHBOARD]);
+      }
+    });
   }
 }

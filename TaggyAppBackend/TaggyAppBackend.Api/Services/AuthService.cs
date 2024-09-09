@@ -21,10 +21,10 @@ public class AuthService(
 {
     private readonly JwtOptions _jwtOptions = jwtSettings.Value;
 
-    public async Task<bool> SignUp(RegisterDto dto)
+    public async Task<TokenDto> SignUp(RegisterDto dto)
     {
-        await RegisterUser(dto);
-        return true;
+        var user = await RegisterUser(dto);
+        return await GetTokens(user);
     }
 
     public async Task<TokenDto> SignIn(LoginDto dto)
@@ -42,14 +42,7 @@ public class AuthService(
         if (signInResult.IsNotAllowed) throw new UnauthorizedException("Not allowed");
         if (!signInResult.Succeeded) throw new UnauthorizedException("Invalid credentials");
 
-        var token = jwtHandler.GenerateJwtToken(user);
-        var refreshToken = jwtHandler.GenerateRefreshToken();
-
-        user.RefreshToken = refreshToken;
-        user.RefreshTokenExp = DateTime.UtcNow.AddDays(Convert.ToDouble(_jwtOptions.RefreshExpirationTime));
-        await userManager.UpdateAsync(user);
-
-        return new TokenDto { AccessToken = token, RefreshToken = refreshToken };
+        return await GetTokens(user);
     }
 
     public async Task<TokenDto> GoogleSignIn(ExternalAuthDto dto)
@@ -58,7 +51,7 @@ public class AuthService(
 
         var info = new UserLoginInfo(dto.Provider, payload.Subject, dto.Provider);
         var user = await userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
-        
+
         if (user == null)
         {
             user = await userManager.FindByEmailAsync(payload.Email);
@@ -77,14 +70,7 @@ public class AuthService(
             }
         }
 
-        var token = jwtHandler.GenerateJwtToken(user);
-        var refreshToken = jwtHandler.GenerateRefreshToken();
-        
-        user.RefreshToken = refreshToken;
-        user.RefreshTokenExp = DateTime.UtcNow.AddDays(Convert.ToDouble(_jwtOptions.RefreshExpirationTime));
-        await userManager.UpdateAsync(user);
-
-        return new TokenDto { AccessToken = token, RefreshToken = refreshToken };
+        return await GetTokens(user);
     }
 
     public async Task<TokenDto> Refresh(string refreshToken)
@@ -102,13 +88,7 @@ public class AuthService(
             throw new UnauthorizedException("Refresh token expired");
         }
 
-        var token = jwtHandler.GenerateJwtToken(user);
-        var newRefreshToken = jwtHandler.GenerateRefreshToken();
-
-        user.RefreshToken = newRefreshToken;
-        await userManager.UpdateAsync(user);
-
-        return new TokenDto { AccessToken = token, RefreshToken = newRefreshToken };
+        return await GetTokens(user);
     }
 
     public async Task<bool> ConfirmEmail(string userId, string token)
@@ -167,6 +147,18 @@ public class AuthService(
         // await SendConfirmationEmail(user.Email, user);
 
         return user;
+    }
+
+    private async Task<TokenDto> GetTokens(TaggyUser user)
+    {
+        var token = jwtHandler.GenerateJwtToken(user);
+        var refreshToken = jwtHandler.GenerateRefreshToken();
+
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExp = DateTime.UtcNow.AddDays(Convert.ToDouble(_jwtOptions.RefreshExpirationTime));
+        await userManager.UpdateAsync(user);
+
+        return new TokenDto { AccessToken = token, RefreshToken = refreshToken };
     }
 
     #endregion

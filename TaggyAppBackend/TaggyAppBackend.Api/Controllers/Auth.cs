@@ -9,25 +9,25 @@ namespace TaggyAppBackend.Api.Controllers;
 public class Auth(IAuthService authService) : ControllerBase
 {
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterDto dto)
+    public async Task<ActionResult<TokenDto>> Register([FromBody] RegisterDto dto)
     {
         return Ok(await authService.SignUp(dto));
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginDto dto)
+    public async Task<ActionResult<TokenDto>> Login([FromBody] LoginDto dto)
     {
         return Ok(await authService.SignIn(dto));
     }
     
     [HttpPost("google-login")]
-    public async Task<IActionResult> GoogleLogin([FromBody] ExternalAuthDto dto)
+    public async Task<ActionResult<TokenDto>> GoogleLogin([FromBody] ExternalAuthDto dto)
     {
         return Ok(await authService.GoogleSignIn(dto));
     }
 
     [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh([FromBody] string refreshToken)
+    public async Task<ActionResult<TokenDto>> Refresh([FromBody] string refreshToken)
     {
         return Ok(await authService.Refresh(refreshToken));
     }

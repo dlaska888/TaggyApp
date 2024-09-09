@@ -1,37 +1,44 @@
 <div class="flex flex-column justify-content-center align-items-center h-screen">
    <p-card styleClass="register-form" class="flex justify-content-center">
       <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate>
-         <div class="flex flex-column gap-5">
-            <h1 class="mt-0">Register</h1>
-            <p-floatLabel>
-               <input type="text" pInputText title="userName" formControlName="userName" />
-               <label for="userName">Username</label>
-            </p-floatLabel>
-            <p-floatLabel>
-               <input type="text" pInputText title="email" formControlName="email" />
-               <label for="email">Email</label>
-            </p-floatLabel>
-            <div>
+         <div class="flex flex-column gap-3">
+            <div class="flex flex-column gap-5">
+               <h1 class="mt-0">Register</h1>
                <p-floatLabel>
-                  <input type="password" pInputText title="password" formControlName="password" />
-                  <label for="password">Password</label>
+                  <input type="text" pInputText title="userName" formControlName="userName" />
+                  <label for="userName">Username</label>
                </p-floatLabel>
-               <ul *ngIf="registerForm.get('password')!.dirty" class="text-sm">
-                  <li *ngFor="let error of getPasswordErrors()" [ngClass]="{ 'text-disabled' : !error.isSet }">
-                     {{ error.message }}
-                  </li>
-               </ul>
-            </div>
-            <div>
                <p-floatLabel>
-                  <input type="password" pInputText title="confirm-password" formControlName="confirmPassword" />
-                  <label for="confirm-password">Confirm Password</label>
+                  <input type="text" pInputText title="email" formControlName="email" />
+                  <label for="email">Email</label>
                </p-floatLabel>
-               <small *ngIf="registerForm.errors?.['passwordMismatch']" class="text-red-500">
-                  Passwords do not match
-               </small>
+               <div>
+                  <p-floatLabel>
+                     <input type="password" pInputText title="password" formControlName="password" />
+                     <label for="password">Password</label>
+                  </p-floatLabel>
+                  <ul *ngIf="registerForm.get('password')!.dirty" class="text-sm">
+                     <li *ngFor="let error of getPasswordErrors()" [ngClass]="{ 'text-disabled' : !error.isSet }">
+                        {{ error.message }}
+                     </li>
+                  </ul>
+               </div>
+               <div>
+                  <p-floatLabel>
+                     <input type="password" pInputText title="confirm-password" formControlName="confirmPassword" />
+                     <label for="confirm-password">Confirm Password</label>
+                  </p-floatLabel>
+                  <small *ngIf="registerForm.errors?.['passwordMismatch']" class="text-red-500">
+                     Passwords do not match
+                  </small>
+               </div>
+               <div class="flex flex-column">
+                  <button title="submit" pButton type="submit" label="Submit"
+                     [disabled]="registerForm.invalid"></button>
+                  <p>Already have an account? <a [routerLink]="[ '/' + pathConst.LOGIN]">Login</a></p>
+               </div>
             </div>
-            <button title="submit" pButton type="submit" label="Submit" [disabled]="registerForm.invalid"></button>
+
             <asl-google-signin-button type='standard' text='signup_with'></asl-google-signin-button>
          </div>
       </form>

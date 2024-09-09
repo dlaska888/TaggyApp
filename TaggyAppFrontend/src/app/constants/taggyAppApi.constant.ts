@@ -4,4 +4,6 @@ export class TaggyAppApiConstant {
     public static readonly LOGIN = environment.taggyappApi.url + '/auth/login';
     public static readonly REGISTER = environment.taggyappApi.url + '/auth/register';
     public static readonly GOOGLE_LOGIN = environment.taggyappApi.url + '/auth/google-login';
+    public static readonly REFRESH_TOKEN = environment.taggyappApi.url + '/auth/refresh';
+    public static readonly GET_ACCOUNT = environment.taggyappApi.url + '/account';
 };
