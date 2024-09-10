@@ -10,6 +10,7 @@ using TaggyAppBackend.Api.Models.Entities;
 using TaggyAppBackend.Api.Models.Entities.Master;
 using TaggyAppBackend.Api.Models.Enums;
 using TaggyAppBackend.Api.Providers;
+using TaggyAppBackend.Api.Repos.Interfaces;
 using TaggyAppBackend.Api.Services.Interfaces;
 using File = TaggyAppBackend.Api.Models.Entities.Master.File;
 
@@ -17,9 +18,11 @@ namespace TaggyAppBackend.Api.Services;
 
 public class FileService(
     AppDbContext dbContext,
+    IBlobRepo blobRepo,
     IGroupUserService groupUserService,
     IAuthContextProvider authContext,
     IPagingHelper pagingHelper,
+    IFileNameHelper fileNameHelper,
     IMapper mapper) : IFileService
 {
     public async Task<PagedResults<GetFileDto>> GetAll(SieveModel query)
@@ -50,6 +53,9 @@ public class FileService(
 
     public async Task<GetFileDto> GetById(string groupId, string fileId)
     {
+        var file = await FindFile(groupId, fileId);
+        var result = mapper.Map<GetFileDto>(file);
+        result.SasToken = blobRepo.GetBlobReadSasToken(fileNameHelper.GetFileBlobName(file));
         return mapper.Map<GetFileDto>(await FindFile(groupId, fileId));
     }
 
@@ -63,9 +69,12 @@ public class FileService(
         file.Path = "path";
 
         dbContext.Files.Add(file);
-        var result = await SaveFileWithTags(file, dto.Tags);
+        var fileWithTags = await SaveFileWithTags(file, dto.Tags);
 
-        return mapper.Map<GetFileDto>(result);
+        var result = mapper.Map<GetFileDto>(fileWithTags);
+        result.SasToken = blobRepo.GetBlobUploadSasToken(fileNameHelper.GetFileBlobName(file));
+
+        return result;
     }
 
     public async Task<GetFileDto> Update(string groupId, string fileId, UpdateFileDto dto)
@@ -90,7 +99,9 @@ public class FileService(
             await groupUserService.VerifyGroupAccess(file.GroupId, GroupRole.Admin);
 
         dbContext.Files.Remove(file);
-        return await dbContext.SaveChangesAsync() > 0;
+        return
+            await dbContext.SaveChangesAsync() > 0 &&
+            await blobRepo.DeleteBlob(fileNameHelper.GetFileBlobName(file));
     }
 
     #region Private Methods

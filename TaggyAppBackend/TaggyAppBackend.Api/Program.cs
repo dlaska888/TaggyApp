@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -18,6 +19,8 @@ using TaggyAppBackend.Api.Models.Entities;
 using TaggyAppBackend.Api.Models.Entities.Master;
 using TaggyAppBackend.Api.Models.Options;
 using TaggyAppBackend.Api.Providers;
+using TaggyAppBackend.Api.Repos;
+using TaggyAppBackend.Api.Repos.Interfaces;
 using TaggyAppBackend.Api.Services;
 using TaggyAppBackend.Api.Services.Interfaces;
 using TaggyAppBackend.Api.Sieve;
@@ -37,6 +40,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAuthContextProvider, AuthContextProvider>();
 builder.Services.AddScoped<ErrorHandlingMiddleWare>();
 
+builder.Services.AddScoped<IBlobRepo, BlobRepo>();
+builder.Services.AddScoped<IFileNameHelper, FileNameHelper>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IGroupUserService, GroupUserService>();
@@ -52,6 +57,21 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
+#endregion
+
+#region Files
+
+builder.Services.Configure<AzureBlobOptions>(builder.Configuration.GetSection("Azure:AzureBlobOptions"));
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = null;
+});
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = long.MaxValue;
+    options.BufferBody = false;
+});
 
 #endregion
 

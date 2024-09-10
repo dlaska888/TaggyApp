@@ -32,7 +32,7 @@ public class GroupFile(IFileService fileService) : ControllerBase
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    public async Task<ActionResult<GetFileDto>> Create(string groupId, CreateFileDto dto)
+    public async Task<ActionResult<GetFileDto>> Create(string groupId, [FromForm] CreateFileDto dto)
     {
         var createdFile = await fileService.Create(groupId, dto);
         return CreatedAtAction(nameof(GetById), new { groupId, fileId = createdFile.Id }, createdFile);
@@ -41,7 +41,7 @@ public class GroupFile(IFileService fileService) : ControllerBase
     [HttpPut("{fileId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<GetFileDto>> Update(string groupId, string fileId, UpdateFileDto dto)
+    public async Task<ActionResult<GetFileDto>> Update(string groupId, string fileId, [FromBody] UpdateFileDto dto)
     {
         var updatedFile = await fileService.Update(groupId, fileId, dto);
         return Ok(updatedFile);

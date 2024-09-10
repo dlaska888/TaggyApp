@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Sieve.Models;
 using Sieve.Services;
 using TaggyAppBackend.Api.Helpers.Interfaces;
@@ -8,8 +9,11 @@ using TaggyAppBackend.Api.Models.Dtos.Interfaces;
 
 namespace TaggyAppBackend.Api.Helpers;
 
-public class PagingHelper(ISieveProcessor sieveProcessor, IMapper mapper) : IPagingHelper
+public class PagingHelper(ISieveProcessor sieveProcessor, IMapper mapper, IOptions<SieveOptions> options)
+    : IPagingHelper
 {
+    private readonly SieveOptions _options = options.Value;
+
     public async Task<PagedResults<TGetDto>> ToPagedResults<TEntity, TGetDto>(
         IQueryable<TEntity> records,
         SieveModel query)
