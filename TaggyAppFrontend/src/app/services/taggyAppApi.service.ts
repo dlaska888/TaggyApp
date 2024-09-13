@@ -2,6 +2,7 @@ import {
   HttpClient,
   HttpContext,
   HttpContextToken,
+  HttpEvent,
   HttpResponse,
 } from '@angular/common/http';
 import { TaggyAppApiConstant } from '../constants/taggyAppApi.constant';
@@ -63,6 +64,17 @@ export class TaggyAppApiService {
         context: new HttpContext().set(ApiTokenConstant.IS_PUBLIC_API, true),
       }
     );
+  }
+
+  public uploadFile(file: File): Observable<HttpEvent<any>> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http.post(TaggyAppApiConstant.UPLOAD_FILE, formData, {
+      reportProgress: true,
+      observe: 'events',
+      context: new HttpContext().set(ApiTokenConstant.IS_PUBLIC_API, true),
+    });
   }
 
   public getAccount(): Observable<HttpResponse<GetAccountDto>> {

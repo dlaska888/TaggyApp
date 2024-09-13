@@ -69,7 +69,6 @@ builder.WebHost.ConfigureKestrel(options =>
 });
 builder.Services.Configure<FormOptions>(options =>
 {
-    options.MultipartBodyLengthLimit = long.MaxValue;
     options.BufferBody = false;
 });
 

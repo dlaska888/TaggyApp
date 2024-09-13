@@ -1,0 +1,19 @@
+:host ::ng-deep .p-fileupload-content .p-progressbar{
+    position: inherit;
+    overflow: hidden;
+}
+
+:host ::ng-deep .file-progressbar .p-progressbar-determinate .p-progressbar-value {
+    height: 0.25rem;
+}
+
+:host ::ng-deep .p-fileupload-content > p-progressbar{
+    display: none;
+}
+
+.progress-text{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}

@@ -72,7 +72,7 @@ public class FileService(
         var fileWithTags = await SaveFileWithTags(file, dto.Tags);
 
         var result = mapper.Map<GetFileDto>(fileWithTags);
-        result.SasToken = blobRepo.GetBlobUploadSasToken(fileNameHelper.GetFileBlobName(file));
+        // result.SasToken = blobRepo.GetBlobUploadSasToken(fileNameHelper.GetFileBlobName(file));
 
         return result;
     }
