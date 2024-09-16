@@ -1,8 +1,8 @@
 <div class="card">
    <p-toast />
-   <p-fileUpload name="myfile[]" [multiple]="true" maxFileSize="10_737_418_240" (onSelect)="onSelectedFiles($event)"
-      [customUpload]="true" (uploadHandler)="uploadHandler($event)">
-      <ng-template pTemplate="header" let-files let-chooseCallback="chooseCallback" let-clearCallback="clearCallback"
+   <p-fileUpload [multiple]="true" maxFileSize="10_737_418_240" (onSelect)="onSelectedFiles($event)"
+      [customUpload]="true" (uploadHandler)="uploadHandler($event)" class="max-h-screen overflow-hidden">
+      <ng-template pTemplate="header" let-chooseCallback="chooseCallback" let-clearCallback="clearCallback"
          let-uploadCallback="uploadCallback">
          <div class="flex flex-wrap justify-content-between align-items-center flex-1 gap-2">
             <div class="flex gap-2">
@@ -22,35 +22,85 @@
             </div>
          </div>
       </ng-template>
-      <ng-template pTemplate="content" let-uploadedFiles="uploadedFiles" let-removeFileCallback="removeFileCallback"
+      <ng-template pTemplate="content" let-removeFileCallback="removeFileCallback"
          let-removeUploadedFileCallback="removeUploadedFileCallback">
          <div *ngIf="files.length > 0" class="flex flex-wrap justify-content-center gap-5">
             <div *ngFor="let file of files; let i = index"
-               class="file-card card m-0 p-2 flex flex-column border-1 surface-border justify-content-between w-12 sm:flex-row sm:gap-3">
-               <div class="flex-1 flex align-items-center overflow-hidden text-overflow-ellipsis white-space-nowrap">
-                  <p class="font-semibold">{{ file.file.name }}</p>
-               </div>
-               <div class="flex-1 flex flex-row justify-content-evenly align-items-center gap-3">
-                  <div class="w-3">{{ formatSize(file.file.size) }}</div>
+               class="file-card card flex flex-column sm:flex-row border-1 surface-border justify-content-between w-12 m-0 p-3 gap-3">
+               <div class="flex-1 flex flex-column w-12 sm:w-6 justify-content-center min-w-0">
+                  <p class="m-0 font-semibold text-ellipsis">{{
+                     file.file.name }}</p>
                   <p-badge *ngIf="file.status === 'failed'" [value]="file.status" severity="danger" />
-                  <p-badge *ngIf="file.status === 'success'" [value]="file.status" severity="success" />
                   <p-badge *ngIf="file.status === 'cancelled'" [value]="file.status" severity="warning" />
-                  <div *ngIf="file.status === 'uploading'" class="w-4rem relative">
-                     <div class="progress-text">{{file.progress}}%</div>
-                     <round-progress [current]="file.progress" [max]="100" [stroke]="30"
-                        [responsive]="true"></round-progress>
+               </div>
+               <div class="flex flex-row justify-content-evenly align-items-center w-12 sm:w-6">
+                  <div class="w-6 text-center white-space-nowrap">{{ formatSize(file.file.size) }}</div>
+                  <div class="w-6 flex justify-content-center">
+                     <div *ngIf="file.status === 'uploading'">
+                        <div class="relative w-3rem">
+                           <round-progress [current]="file.progress" [max]="100" [stroke]="8" [radius]="24"
+                              color="var(--primary-color)" />
+                           <p-button class="progress-text" icon="pi pi-times"
+                              (onClick)="onRemoveFile($event, file, removeFileCallback, i)" [text]="true"
+                              severity="secondary" />
+                        </div>
+                     </div>
+                     <div *ngIf="!file.status || file.status === 'failed' || file.status === 'cancelled'"
+                        class="flex-1 flex justify-content-evenly">
+                        <p-button *ngIf="file.status" (onClick)="onRetry(file)" [outlined]="true" [rounded]="true"
+                           icon="pi pi-refresh" severity="warning" />
+                        <p-button (onClick)="onRemoveFile($event, file, removeFileCallback, i)" [outlined]="true"
+                           [rounded]="true" icon="pi pi-times" severity="danger" />
+                     </div>
+                     <p-button *ngIf="file.status === 'success'"
+                        (onClick)="onRemoveFile($event, file, removeFileCallback, i)" [outlined]="true" [rounded]="true"
+                        icon="pi pi-check" severity="success" />
                   </div>
-                  <p-button *ngIf="file.status === 'failed' || file.status === 'cancelled'" icon="pi pi-refresh"
-                     (onClick)="onRetry(file)" [outlined]="true" [rounded]="true" severity="warning" />
-                  <p-button icon="pi pi-times" (onClick)="onRemoveFile($event, file, removeFileCallback, i)"
-                     [outlined]="true" [rounded]="true" severity="danger" />
+
+               </div>
+            </div>
+         </div>
+         <h3 *ngIf="uploadedFiles.length > 0">Uploaded files</h3>
+         <div *ngIf="uploadedFiles.length > 0" class="flex flex-wrap justify-content-center gap-5">
+            <div *ngFor="let file of uploadedFiles; let i = index"
+               class="file-card card flex flex-column sm:flex-row border-1 surface-border justify-content-between w-12 m-0 p-3 gap-3">
+               <div class="flex-1 flex flex-column w-12 sm:w-6 justify-content-center min-w-0">
+                  <p class="m-0 font-semibold text-ellipsis">{{
+                     file.file.name }}</p>
+                  <p-badge *ngIf="file.status === 'failed'" [value]="file.status" severity="danger" />
+                  <p-badge *ngIf="file.status === 'cancelled'" [value]="file.status" severity="warning" />
+               </div>
+               <div class="flex flex-row justify-content-evenly align-items-center w-12 sm:w-6">
+                  <div class="w-6 text-center white-space-nowrap">{{ formatSize(file.file.size) }}</div>
+                  <div class="w-6 flex justify-content-center">
+                     <div *ngIf="file.status === 'uploading'">
+                        <div class="relative w-3rem">
+                           <round-progress [current]="file.progress" [max]="100" [stroke]="8" [radius]="24"
+                              color="var(--primary-color)" />
+                           <p-button class="progress-text" icon="pi pi-times"
+                              (onClick)="onRemoveFile($event, file, removeFileCallback, i)" [text]="true"
+                              severity="secondary" />
+                        </div>
+                     </div>
+                     <div *ngIf="!file.status || file.status === 'failed' || file.status === 'cancelled'"
+                        class="flex-1 flex justify-content-evenly">
+                        <p-button *ngIf="file.status" (onClick)="onRetry(file)" [outlined]="true" [rounded]="true"
+                           icon="pi pi-refresh" severity="warning" />
+                        <p-button (onClick)="onRemoveFile($event, file, removeFileCallback, i)" [outlined]="true"
+                           [rounded]="true" icon="pi pi-times" severity="danger" />
+                     </div>
+                     <p-button *ngIf="file.status === 'success'"
+                        (onClick)="onRemoveFile($event, file, removeFileCallback, i)" [outlined]="true" [rounded]="true"
+                        icon="pi pi-check" severity="success" />
+                  </div>
+
                </div>
             </div>
          </div>
       </ng-template>
       <ng-template pTemplate="file"> </ng-template>
       <ng-template pTemplate="empty">
-         <div class="flex align-items-center justify-content-center flex-column">
+         <div *ngIf="uploadedFiles.length === 0" class="flex align-items-center justify-content-center flex-column">
             <i class="pi pi-cloud-upload border-2 border-circle p-5 text-8xl text-400 border-400"></i>
             <p class="mt-4 mb-0">Drag and drop files here to upload.</p>
          </div>

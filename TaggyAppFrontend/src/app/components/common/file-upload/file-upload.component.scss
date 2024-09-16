@@ -1,19 +1,34 @@
-:host ::ng-deep .p-fileupload-content .p-progressbar{
-    position: inherit;
-    overflow: hidden;
-}
+:host ::ng-deep {
+  .p-fileupload-content {
+    flex: 0 1 auto;
+    overflow: scroll;
+    height: calc(100vh - 89px); 
 
-:host ::ng-deep .file-progressbar .p-progressbar-determinate .p-progressbar-value {
+    .p-progressbar {
+      position: inherit;
+      overflow: hidden;
+    }
+  }
+
+  .file-progressbar .p-progressbar-determinate .p-progressbar-value {
     height: 0.25rem;
-}
+  }
 
-:host ::ng-deep .p-fileupload-content > p-progressbar{
+  .p-fileupload-content > p-progressbar {
     display: none;
-}
+  }
 
-.progress-text{
+  .progress-text {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    border: none;
+  }
+}
+
+.text-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

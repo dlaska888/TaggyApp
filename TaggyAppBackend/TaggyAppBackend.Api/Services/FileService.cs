@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Sieve.Models;
 using TaggyAppBackend.Api.Exceptions;
@@ -22,7 +23,6 @@ public class FileService(
     IGroupUserService groupUserService,
     IAuthContextProvider authContext,
     IPagingHelper pagingHelper,
-    IFileNameHelper fileNameHelper,
     IMapper mapper) : IFileService
 {
     public async Task<PagedResults<GetFileDto>> GetAll(SieveModel query)
@@ -53,28 +53,29 @@ public class FileService(
 
     public async Task<GetFileDto> GetById(string groupId, string fileId)
     {
-        var file = await FindFile(groupId, fileId);
-        var result = mapper.Map<GetFileDto>(file);
-        result.SasToken = blobRepo.GetBlobReadSasToken(fileNameHelper.GetFileBlobName(file));
         return mapper.Map<GetFileDto>(await FindFile(groupId, fileId));
     }
 
-    public async Task<GetFileDto> Create(string groupId, CreateFileDto dto)
+    public async Task<GetFileDto> Create(string groupId, CreateFileDto dto, Stream stream)
     {
         await groupUserService.VerifyGroupAccess(groupId);
 
         var file = mapper.Map<File>(dto);
         file.CreatorId = authContext.GetUserId();
         file.GroupId = groupId;
-        file.Path = "path";
+        
+        var fileName = $"{file.Id}{Path.GetExtension(dto.Name)}";
+        file.Path = fileName;
+
+        var totalBytes = await blobRepo.UploadBlob(fileName, groupId, stream);
+        if (totalBytes == -1)
+            throw new BadRequestException("Failed to upload file");
+        file.Size = totalBytes;
 
         dbContext.Files.Add(file);
         var fileWithTags = await SaveFileWithTags(file, dto.Tags);
 
-        var result = mapper.Map<GetFileDto>(fileWithTags);
-        // result.SasToken = blobRepo.GetBlobUploadSasToken(fileNameHelper.GetFileBlobName(file));
-
-        return result;
+        return mapper.Map<GetFileDto>(fileWithTags);
     }
 
     public async Task<GetFileDto> Update(string groupId, string fileId, UpdateFileDto dto)
@@ -101,7 +102,13 @@ public class FileService(
         dbContext.Files.Remove(file);
         return
             await dbContext.SaveChangesAsync() > 0 &&
-            await blobRepo.DeleteBlob(fileNameHelper.GetFileBlobName(file));
+            await blobRepo.DeleteBlob(fileId, groupId);
+    }
+
+    public async Task<Stream> Download(string groupId, string fileId)
+    {
+        await groupUserService.VerifyGroupAccess(groupId);
+        return await blobRepo.DownloadBlob(fileId, groupId);
     }
 
     #region Private Methods

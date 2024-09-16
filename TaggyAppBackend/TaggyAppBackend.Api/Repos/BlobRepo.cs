@@ -1,139 +1,145 @@
-﻿using System.Collections;
+﻿using System.Buffers;
+using System.Collections;
+using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks.Dataflow;
 using Azure.Storage;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using Azure.Storage.Sas;
-using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Options;
-using Microsoft.Net.Http.Headers;
 using TaggyAppBackend.Api.Models.Options;
 using TaggyAppBackend.Api.Repos.Interfaces;
 
-namespace TaggyAppBackend.Api.Repos
-{
-    public class BlobRepo : IBlobRepo
-    {
-        private readonly BlobContainerClient _container;
-        private readonly AzureBlobOptions _options;
+namespace TaggyAppBackend.Api.Repos;
 
-        public BlobRepo(IOptions<AzureBlobOptions> options)
+public class BlobRepo : IBlobRepo
+{
+    private readonly AzureBlobOptions _options;
+    private readonly BlobServiceClient _client;
+
+    public BlobRepo(IOptions<AzureBlobOptions> options)
+    {
+        _options = options.Value;
+        var credentials = new StorageSharedKeyCredential(_options.StorageAccount, _options.Key);
+        var serviceUri = new Uri($"https://{_options.StorageAccount}.blob.core.windows.net");
+        _client = new BlobServiceClient(serviceUri, credentials);
+    }
+
+    public async Task<Stream> DownloadBlob(string blobName, string containerName)
+    {
+        var container = await GetContainer(containerName);
+        var blob = container.GetBlobClient(blobName);
+        return await blob.OpenReadAsync();
+    }
+
+    public async Task<long> UploadBlob(string blobName, string containerName, Stream stream)
+    {
+        var container = await GetContainer(containerName);
+        var blobClient = container.GetBlockBlobClient(blobName);
+        var maxParallelConsume = _options.MaxParallelism;
+
+        var buffer = new BufferBlock<Block>(new DataflowBlockOptions
+            { BoundedCapacity = maxParallelConsume });
+
+        var consumerBlock = new ActionBlock<Block>(
+            block => StageBlock(block, blobClient),
+            new ExecutionDataflowBlockOptions
+            {
+                BoundedCapacity = maxParallelConsume,
+                MaxDegreeOfParallelism = maxParallelConsume
+            });
+
+        buffer.LinkTo(consumerBlock, new DataflowLinkOptions
+            { PropagateCompletion = true });
+
+        var producerTask = Produce(buffer, stream);
+        await consumerBlock.Completion;
+
+        var producerResult = await producerTask;
+
+        if (producerResult.TotalBytesUploaded == -1)
+            return -1;
+
+        var provider = new FileExtensionContentTypeProvider();
+        if (!provider.TryGetContentType(blobName, out var contentType))
+            contentType = "application/octet-stream";
+
+        var headers = new BlobHttpHeaders
         {
-            _options = options.Value;
-            var credentials = new StorageSharedKeyCredential(_options.StorageAccount, _options.Key);
-            var serviceUri = new Uri($"https://{_options.StorageAccount}.blob.core.windows.net");
-            var client = new BlobServiceClient(serviceUri, credentials);
-            _container = client.GetBlobContainerClient(_options.Container);
+            ContentType = contentType,
+            ContentHash = producerResult.Hash
+        };
+
+        await blobClient.CommitBlockListAsync(producerResult.BlockIds, headers);
+        return producerResult.TotalBytesUploaded;
+    }
+
+    public async Task<bool> DeleteBlob(string blobName, string containerName)
+    {
+        var container = await GetContainer(containerName);
+        var blob = container.GetBlobClient(blobName);
+
+        return await blob.DeleteIfExistsAsync();
+    }
+
+    private async Task<BlobContainerClient> GetContainer(string containerName)
+    {
+        var container = _client.GetBlobContainerClient(containerName);
+        if (!await container.ExistsAsync())
+        {
+            await container.CreateAsync();
         }
 
-        public async Task<bool> UploadFileToBlobAsync(Stream fileStream, string fileName)
+        return container;
+    }
+
+    private record Block(string Id, byte[] Data, int Length);
+
+    private record ProducerResult(IReadOnlyCollection<string> BlockIds, long TotalBytesUploaded, byte[]? Hash);
+
+    private async Task<ProducerResult> Produce(ITargetBlock<Block> target,
+        Stream file)
+    {
+        var blockIds = new List<string>();
+        var blockSize = _options.BlockSize;
+        var totalBytesUploaded = 0L;
+
+        using var md5 = MD5.Create();
+
+        while (true)
         {
-            const int blockSize = 1024 * 1024 * 4; // 4MB
-            var blobClient = _container.GetBlockBlobClient(Guid.NewGuid().ToString());
+            var buffer = ArrayPool<byte>.Shared.Rent(blockSize);
+            var read = await file.ReadAsync(buffer);
 
-            var blockIdArrayList = new ArrayList();
-            int bytesRead;
-            long totalBytesUploaded = 0;
+            if (read == 0) break;
 
-            // Buffer for each block
-            var buffer = new byte[blockSize];
+            md5.TransformBlock(buffer, 0, read, null, 0);
 
-            // Read from the stream until no more data is available
-            while ((bytesRead = await fileStream.ReadAsync(buffer, 0, blockSize)) > 0)
+            totalBytesUploaded += read;
+            if (totalBytesUploaded > _options.MaxBlobSize)
             {
-                using (var memoryStream = new MemoryStream(buffer, 0, bytesRead))
-                {
-                    var blockId = Convert.ToBase64String(Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()));
-                    blockIdArrayList.Add(blockId);
-                    await blobClient.StageBlockAsync(blockId, memoryStream);
-                }
-
-                // Increment the total bytes uploaded
-                totalBytesUploaded += bytesRead;
+                target.Complete();
+                return new ProducerResult(blockIds, -1, null);
             }
 
-            // Convert ArrayList to string array
-            var blockIdArray = (string[])blockIdArrayList.ToArray(typeof(string));
-
-            // Commit the block list
-            await blobClient.CommitBlockListAsync(blockIdArray);
-
-            return true;
+            var blockId = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+            blockIds.Add(blockId);
+            await target.SendAsync(new Block(blockId, buffer, read));
         }
 
+        //add invalid value to hash
+        md5.TransformFinalBlock([], 0, 0);
 
-        public string GetContainerReadSasToken()
-        {
-            return GetContainerSasToken(BlobContainerSasPermissions.Read);
-        }
+        target.Complete();
+        return new ProducerResult(blockIds, totalBytesUploaded, md5.Hash);
+    }
 
-        public string GetBlobReadSasToken(string blobName)
-        {
-            return GetBlobSasToken(blobName, BlobSasPermissions.Read);
-        }
-
-        public string GetContainerCreateSasToken()
-        {
-            return GetContainerSasToken(BlobContainerSasPermissions.Create);
-        }
-
-        public string GetBlobDeleteSasToken(string blobName)
-        {
-            return GetBlobSasToken(blobName, BlobSasPermissions.Delete);
-        }
-
-        public async Task<bool> DeleteBlob(string path)
-        {
-            var blob = _container.GetBlobClient(path);
-            return await blob.DeleteIfExistsAsync();
-        }
-
-        private string GetContainerSasToken(BlobContainerSasPermissions permissions)
-        {
-            var sasBuilder = new BlobSasBuilder
-            {
-                BlobContainerName = _container.Name,
-                Resource = "c",
-
-                ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(15)
-            };
-            sasBuilder.SetPermissions(permissions);
-
-            var sasQuery =
-                sasBuilder.ToSasQueryParameters(
-                    new StorageSharedKeyCredential(_options.StorageAccount, _options.Key));
-
-            var uriBuilder = new UriBuilder(_container.Uri)
-            {
-                Query = sasQuery.ToString()
-            };
-
-            return uriBuilder.ToString();
-        }
-
-        // Helper method for generating SAS tokens for an individual blob
-        private string GetBlobSasToken(string blobName, BlobSasPermissions permissions)
-        {
-            var blob = _container.GetBlobClient(blobName);
-            var sasBuilder = new BlobSasBuilder
-            {
-                BlobContainerName = _container.Name,
-                BlobName = blob.Name,
-                Resource = "b",
-                ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(15)
-            };
-            sasBuilder.SetPermissions(permissions);
-
-            var sasQuery =
-                sasBuilder.ToSasQueryParameters(
-                    new StorageSharedKeyCredential(_options.StorageAccount, _options.Key));
-
-            var uriBuilder = new UriBuilder(blob.Uri)
-            {
-                Query = sasQuery.ToString()
-            };
-
-            return uriBuilder.ToString();
-        }
+    private async Task StageBlock(Block block, BlockBlobClient blobClient)
+    {
+        using var ms = new MemoryStream(block.Data, 0, block.Length);
+        await blobClient.StageBlockAsync(block.Id, ms);
     }
 }

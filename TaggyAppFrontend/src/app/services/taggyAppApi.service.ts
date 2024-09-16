@@ -66,10 +66,7 @@ export class TaggyAppApiService {
     );
   }
 
-  public uploadFile(file: File): Observable<HttpEvent<any>> {
-    const formData = new FormData();
-    formData.append('file', file);
-
+  public uploadFile(formData: FormData): Observable<HttpEvent<any>> {
     return this.http.post(TaggyAppApiConstant.UPLOAD_FILE, formData, {
       reportProgress: true,
       observe: 'events',

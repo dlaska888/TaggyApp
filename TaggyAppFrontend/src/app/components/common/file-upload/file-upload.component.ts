@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { MessageService, PrimeNGConfig } from 'primeng/api';
 import {
   FileSelectEvent,
@@ -20,6 +20,7 @@ import { FileRequest } from '../../../models/ui/ProgressFile';
 import { RoundProgressComponent } from 'angular-svg-round-progressbar';
 import { TaggyAppApiConstant } from '../../../constants/taggyAppApi.constant';
 import { TaggyAppApiService } from '../../../services/taggyAppApi.service';
+import { environment } from '../../../../environments/environment.development';
 
 @Component({
   selector: 'file-upload',
@@ -40,12 +41,15 @@ import { TaggyAppApiService } from '../../../services/taggyAppApi.service';
 })
 export class FileUploadComponent {
   files: FileRequest[] = [];
+  uploadedFiles: FileRequest[] = [];
   totalSize: number = 0;
   totalSizePercent: number = 0;
+  sizeLimit: number = environment.taggyappApi.fileSizeLimit;
 
   constructor(
     private config: PrimeNGConfig,
-    private taggyAppApiService: TaggyAppApiService
+    private taggyAppApiService: TaggyAppApiService,
+    private messageService: MessageService
   ) {}
 
   uploadHandler(event: FileUploadHandlerEvent) {
@@ -65,7 +69,7 @@ export class FileUploadComponent {
         this.totalSize += file.size;
       }
     }
-    this.totalSizePercent = (this.totalSize / 10_737_418_240) * 100;
+    this.totalSizePercent = (this.totalSize / this.sizeLimit) * 100;
   }
 
   onRemoveFile(
@@ -123,10 +127,12 @@ export class FileUploadComponent {
 
   private uploadFile(file: FileRequest): void {
     const formData = new FormData();
+    const dto = { name: file.file.name };
+    formData.append('dto', JSON.stringify(dto));
     formData.append('file', file.file);
 
     file.status = 'uploading';
-    const request = this.taggyAppApiService.uploadFile(file.file).subscribe(
+    const request = this.taggyAppApiService.uploadFile(formData).subscribe(
       (event: HttpEvent<any>) => {
         if (event.type === HttpEventType.UploadProgress) {
           if (event.total) {
@@ -134,11 +140,18 @@ export class FileUploadComponent {
           }
         } else if (event.type === HttpEventType.Response) {
           file.status = 'success';
+          this.removeFile(file);
+          this.uploadedFiles.push(file);
         }
       },
       (error) => {
         file.status = 'failed';
         console.error('Upload failed', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Upload failed',
+          detail: error.message,
+        });
       }
     );
     file.request = request;
@@ -149,10 +162,11 @@ export class FileUploadComponent {
       file.request!.unsubscribe();
       file.request = null;
       file.status = 'cancelled';
+      file.progress = 0;
       return;
     }
     this.files = this.files.filter((f) => f.file.name !== file.file.name);
     this.totalSize -= file.file.size || 0;
-    this.totalSizePercent = (this.totalSize / 10_737_418_240) * 100;
+    this.totalSizePercent = (this.totalSize / this.sizeLimit) * 100;
   }
 }

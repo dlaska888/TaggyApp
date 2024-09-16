@@ -1,13 +1,8 @@
-using Microsoft.AspNetCore.WebUtilities;
-
 namespace TaggyAppBackend.Api.Repos.Interfaces;
 
 public interface IBlobRepo
 {
-    string GetContainerReadSasToken();
-    string GetBlobReadSasToken(string blobName);
-    Task<bool> UploadFileToBlobAsync(Stream stream, string fileName);
-    string GetContainerCreateSasToken();
-    string GetBlobDeleteSasToken(string blobName);
-    Task<bool> DeleteBlob(string path);
+    Task<Stream> DownloadBlob(string blobName, string containerName);
+    Task<long> UploadBlob(string blobName, string containerName, Stream stream);
+    Task<bool> DeleteBlob(string blobName, string containerName);
 }
