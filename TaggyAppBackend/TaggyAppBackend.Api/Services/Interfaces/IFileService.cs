@@ -12,5 +12,4 @@ public interface IFileService
     public Task<GetFileDto> Create(string groupId, CreateFileDto dto, Stream stream);
     public Task<GetFileDto> Update(string groupId, string fileId, UpdateFileDto dto);
     public Task<bool> Delete(string groupId, string fileId);
-    public Task<Stream> Download(string groupId, string fileId);
 }

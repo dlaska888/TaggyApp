@@ -28,6 +28,42 @@ public class BlobRepo : IBlobRepo
         _client = new BlobServiceClient(serviceUri, credentials);
     }
 
+    public async Task<string> GetBlobDownloadPath(string blobName, string containerName)
+    {
+        var container = await GetContainer(containerName);
+        var blob = container.GetBlobClient(blobName);
+        var sasBuilder = new BlobSasBuilder
+        {
+            BlobContainerName = containerName,
+            BlobName = blobName,
+            Resource = "b"
+        };
+
+        sasBuilder.SetPermissions(BlobSasPermissions.Read);
+        sasBuilder.ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(_options.SasTokenExpirationTime);
+
+        var sasQuery =
+            sasBuilder.ToSasQueryParameters(new StorageSharedKeyCredential(_options.StorageAccount, _options.Key));
+        return $"{blob.Uri}?{sasQuery}";
+    }
+
+    public async Task<string> GetContainerDownloadPath(string containerName)
+    {
+        var container = await GetContainer(containerName);
+        var sasBuilder = new BlobSasBuilder
+        {
+            BlobContainerName = containerName,
+            Resource = "c"
+        };
+
+        sasBuilder.SetPermissions(BlobContainerSasPermissions.Read);
+        sasBuilder.ExpiresOn = DateTimeOffset.UtcNow.AddHours(_options.SasTokenExpirationTime);
+
+        var sasQuery =
+            sasBuilder.ToSasQueryParameters(new StorageSharedKeyCredential(_options.StorageAccount, _options.Key));
+        return $"{container.Uri}?{sasQuery}";
+    }
+
     public async Task<Stream> DownloadBlob(string blobName, string containerName)
     {
         var container = await GetContainer(containerName);

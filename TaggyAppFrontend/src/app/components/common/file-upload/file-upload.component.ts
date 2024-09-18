@@ -9,18 +9,17 @@ import { ButtonModule } from 'primeng/button';
 import { CommonModule } from '@angular/common';
 import { BadgeModule } from 'primeng/badge';
 import {
-  HttpClient,
   HttpClientModule,
   HttpEvent,
   HttpEventType,
 } from '@angular/common/http';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ToastModule } from 'primeng/toast';
-import { FileRequest } from '../../../models/ui/ProgressFile';
 import { RoundProgressComponent } from 'angular-svg-round-progressbar';
 import { TaggyAppApiConstant } from '../../../constants/taggyAppApi.constant';
 import { TaggyAppApiService } from '../../../services/taggyAppApi.service';
 import { environment } from '../../../../environments/environment.development';
+import { ProgressFile } from '../../../models/ui/ProgressFile';
 
 @Component({
   selector: 'file-upload',
@@ -40,8 +39,8 @@ import { environment } from '../../../../environments/environment.development';
   providers: [MessageService],
 })
 export class FileUploadComponent {
-  files: FileRequest[] = [];
-  uploadedFiles: FileRequest[] = [];
+  files: ProgressFile[] = [];
+  uploadedFiles: ProgressFile[] = [];
   totalSize: number = 0;
   totalSizePercent: number = 0;
   sizeLimit: number = environment.taggyappApi.fileSizeLimit;
@@ -65,7 +64,7 @@ export class FileUploadComponent {
     for (const file of event.files) {
       const exists = this.files.some((f) => f.file.name === file.name);
       if (!exists) {
-        this.files.push(new FileRequest(file));
+        this.files.push(new ProgressFile(file));
         this.totalSize += file.size;
       }
     }
@@ -74,7 +73,7 @@ export class FileUploadComponent {
 
   onRemoveFile(
     event: MouseEvent,
-    file: FileRequest,
+    file: ProgressFile,
     removeFileCallback: Function,
     index: number
   ) {
@@ -84,7 +83,7 @@ export class FileUploadComponent {
     }
   }
 
-  onRetry(file: FileRequest) {
+  onRetry(file: ProgressFile) {
     this.uploadFile(file);
   }
 
@@ -125,7 +124,7 @@ export class FileUploadComponent {
     return `${formattedSize} ${sizes![i]}`;
   }
 
-  private uploadFile(file: FileRequest): void {
+  private uploadFile(file: ProgressFile): void {
     const formData = new FormData();
     const dto = { name: file.file.name };
     formData.append('dto', JSON.stringify(dto));
@@ -157,7 +156,7 @@ export class FileUploadComponent {
     file.request = request;
   }
 
-  private removeFile(file: FileRequest) {
+  private removeFile(file: ProgressFile) {
     if (file.status === 'uploading') {
       file.request!.unsubscribe();
       file.request = null;

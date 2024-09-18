@@ -1,1 +1,21 @@
-<p>dashboard works!</p>
+<div *ngIf="pagedFiles">
+   <div *ngFor="let group of pagedFiles.items">
+      <div class="card">
+         <div class="card-body">
+            <h5 class="card-title">{{ group.name }}</h5>
+            <p class="card-text">{{ group.description }}</p>
+            <a href="{{ group.downloadPath }}" class="btn btn-primary">Download</a>
+         </div>
+      </div>
+   </div>
+</div>
+<div *ngIf="pagedGroups">
+   <div *ngFor="let group of pagedGroups.items">
+      <div class="card">
+         <div class="card-body">
+            <h5 class="card-title">{{ group.name }}</h5>
+            <p class="card-text">{{ group.description }}</p>
+         </div>
+      </div>
+   </div>
+</div>

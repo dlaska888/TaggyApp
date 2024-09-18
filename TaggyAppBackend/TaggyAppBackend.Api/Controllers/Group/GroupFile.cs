@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
@@ -112,12 +111,5 @@ public class GroupFile(IFileService fileService, IBlobRepo blobRepo, IOptions<Az
         await fileService.Delete(groupId, fileId);
         return NoContent();
     }
-
-    [HttpGet("{fileId}/download")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult> Download(string groupId, string fileId)
-    {
-        var stream = await fileService.Download(groupId, fileId);
-        return File(stream, "application/octet-stream");
-    }
+    
 }

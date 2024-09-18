@@ -1,6 +1,6 @@
 import { Subscription } from "rxjs";
 
-export class FileRequest {
+export class ProgressFile {
     file : File;
     progress : number;
     request? : Subscription | null;

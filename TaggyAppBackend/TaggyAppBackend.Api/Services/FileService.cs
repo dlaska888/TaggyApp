@@ -6,6 +6,7 @@ using TaggyAppBackend.Api.Exceptions;
 using TaggyAppBackend.Api.Helpers.Interfaces;
 using TaggyAppBackend.Api.Models.Dtos;
 using TaggyAppBackend.Api.Models.Dtos.File;
+using TaggyAppBackend.Api.Models.Dtos.Group;
 using TaggyAppBackend.Api.Models.Dtos.Tag;
 using TaggyAppBackend.Api.Models.Entities;
 using TaggyAppBackend.Api.Models.Entities.Master;
@@ -35,7 +36,7 @@ public class FileService(
             .Where(x => x.Group.GroupUsers.Any(u => u.UserId == userId))
             .AsNoTracking();
 
-        return await pagingHelper.ToPagedResults<File, GetFileDto>(files, query);
+        return await GetPagedFiles(files, query);
     }
 
     public async Task<PagedResults<GetFileDto>> GetAllByGroupId(string groupId, SieveModel query)
@@ -47,13 +48,15 @@ public class FileService(
             .Include(x => x.Tags)
             .Where(x => x.GroupId == groupId)
             .AsNoTracking();
-
-        return await pagingHelper.ToPagedResults<File, GetFileDto>(files, query);
+        
+        return await GetPagedFiles(files, query);
     }
 
     public async Task<GetFileDto> GetById(string groupId, string fileId)
     {
-        return mapper.Map<GetFileDto>(await FindFile(groupId, fileId));
+        var paged = mapper.Map<GetFileDto>(await FindFile(groupId, fileId));
+        paged.DownloadPath = await blobRepo.GetBlobDownloadPath(fileId, groupId);
+        return paged;
     }
 
     public async Task<GetFileDto> Create(string groupId, CreateFileDto dto, Stream stream)
@@ -63,9 +66,9 @@ public class FileService(
         var file = mapper.Map<File>(dto);
         file.CreatorId = authContext.GetUserId();
         file.GroupId = groupId;
-        
-        var fileName = $"{file.Id}{Path.GetExtension(dto.Name)}";
-        file.Path = fileName;
+
+        var fileName = $"{file.Id}{Path.GetExtension(dto.UntrustedName)}";
+        file.TrustedName = fileName;
 
         var totalBytes = await blobRepo.UploadBlob(fileName, groupId, stream);
         if (totalBytes == -1)
@@ -174,6 +177,23 @@ public class FileService(
             throw new NotFoundException("Group not found");
 
         return group;
+    }
+
+    private async Task<PagedResults<GetFileDto>> GetPagedFiles(IQueryable<File> files, SieveModel query)
+    {
+        var paged = await pagingHelper.ToPagedResults<File, GetFileDto>(files, query);
+        var result = paged.Items.Select(async x =>
+        {
+            x.DownloadPath = await blobRepo.GetBlobDownloadPath(x.Id, x.GroupId);
+            return x;
+        });
+
+        return new PagedResults<GetFileDto>(
+            await Task.WhenAll(result),
+            paged.PageNum,
+            paged.PageSize,
+            paged.TotalItems
+        );
     }
 
     #endregion
