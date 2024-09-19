@@ -4,7 +4,10 @@ import { GetTagDto } from "../tag/getTagDto";
 export interface GetFileDto extends GetDto {
   name: string;
   description?: string;
-  downloadPath: string;
+  url: string;
+  contentType: string;
+  size: number;
+
   creatorId: string;
   groupId: string;
   tags: GetTagDto[];

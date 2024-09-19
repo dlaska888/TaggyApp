@@ -12,6 +12,6 @@ export const routes: Routes = [
   { path: PathConstant.LOGIN, component: LoginComponent },
   { path: PathConstant.REGISTER, component: RegisterComponent },
   { path: PathConstant.FILE_UPLOAD, component: FileUploadComponent },
-  { path: PathConstant.DASHBOARD, component: DashboardComponent },
+  { path: PathConstant.DASHBOARD, component: DashboardComponent, canActivate: [authGuardFn] },
   { path: '**', redirectTo: PathConstant.INDEX },
 ];

@@ -87,11 +87,17 @@ export class TaggyAppApiService {
     });
   }
 
-  public uploadFile(formData: FormData): Observable<HttpEvent<any>> {
-    return this.http.post(TaggyAppApiConstant.UPLOAD_FILE, formData, {
-      reportProgress: true,
-      observe: 'events',
-      context: new HttpContext().set(ApiTokenConstant.IS_PUBLIC_API, true),
-    });
+  public uploadFile(
+    groupId: string,
+    formData: FormData
+  ): Observable<HttpEvent<any>> {
+    return this.http.post(
+      `${TaggyAppApiConstant.GROUP}/${groupId}/file`,
+      formData,
+      {
+        reportProgress: true,
+        observe: 'events',
+      }
+    );
   }
 }

@@ -32,6 +32,7 @@ public class DtoMappingProfile : Profile
         CreateMap<TaggyUser, GetAccountDto>();
 
         CreateMap<File, GetFileDto>()
+            .ForMember(f => f.Name, opt => opt.MapFrom(f => f.UntrustedName))
             .ForMember(f => f.Tags, opt =>
                 opt.MapFrom((file, _, _, context) =>
                     file.Tags.Select(t => context.Mapper.Map<GetTagDto>(t))
@@ -40,8 +41,9 @@ public class DtoMappingProfile : Profile
         CreateMap<CreateFileDto, File>()
             .ForMember(f => f.Tags, opt => opt.Ignore());
         CreateMap<UpdateFileDto, File>()
+            .ForMember(f => f.UntrustedName, opt => opt.MapFrom(f => f.Name))
             .ForMember(f => f.Tags, opt => opt.Ignore());
-        
+
         CreateMap<Tag, GetTagDto>();
         CreateMap<CreateTagDto, Tag>();
         CreateMap<UpdateTagDto, Tag>();

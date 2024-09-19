@@ -1,7 +1,5 @@
 ﻿using System.Buffers;
-using System.Collections;
 using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks.Dataflow;
 using Azure.Storage;
 using Azure.Storage.Blobs;
@@ -10,8 +8,10 @@ using Azure.Storage.Blobs.Specialized;
 using Azure.Storage.Sas;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Options;
+using TaggyAppBackend.Api.Exceptions;
 using TaggyAppBackend.Api.Models.Options;
 using TaggyAppBackend.Api.Repos.Interfaces;
+using BlobInfo = TaggyAppBackend.Api.Models.Repo.BlobInfo;
 
 namespace TaggyAppBackend.Api.Repos;
 
@@ -71,7 +71,7 @@ public class BlobRepo : IBlobRepo
         return await blob.OpenReadAsync();
     }
 
-    public async Task<long> UploadBlob(string blobName, string containerName, Stream stream)
+    public async Task<BlobInfo> UploadBlob(string blobName, string containerName, Stream stream)
     {
         var container = await GetContainer(containerName);
         var blobClient = container.GetBlockBlobClient(blobName);
@@ -96,9 +96,6 @@ public class BlobRepo : IBlobRepo
 
         var producerResult = await producerTask;
 
-        if (producerResult.TotalBytesUploaded == -1)
-            return -1;
-
         var provider = new FileExtensionContentTypeProvider();
         if (!provider.TryGetContentType(blobName, out var contentType))
             contentType = "application/octet-stream";
@@ -110,7 +107,12 @@ public class BlobRepo : IBlobRepo
         };
 
         await blobClient.CommitBlockListAsync(producerResult.BlockIds, headers);
-        return producerResult.TotalBytesUploaded;
+        return new BlobInfo
+        {
+            Name = blobName,
+            ContentType = contentType,
+            Size = producerResult.TotalBytesUploaded
+        };
     }
 
     public async Task<bool> DeleteBlob(string blobName, string containerName)
@@ -158,7 +160,7 @@ public class BlobRepo : IBlobRepo
             if (totalBytesUploaded > _options.MaxBlobSize)
             {
                 target.Complete();
-                return new ProducerResult(blockIds, -1, null);
+                throw new BlobSizeExceededException();
             }
 
             var blockId = Convert.ToBase64String(Guid.NewGuid().ToByteArray());

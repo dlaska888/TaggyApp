@@ -7,21 +7,20 @@ using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using Sieve.Models;
+using TaggyAppBackend.Api.Attributes;
 using TaggyAppBackend.Api.Exceptions;
 using TaggyAppBackend.Api.Helpers;
 using TaggyAppBackend.Api.Models.Dtos;
 using TaggyAppBackend.Api.Models.Dtos.File;
 using TaggyAppBackend.Api.Models.Options;
-using TaggyAppBackend.Api.Repos.Interfaces;
 using TaggyAppBackend.Api.Services.Interfaces;
 
 namespace TaggyAppBackend.Api.Controllers.Group;
 
+[Authorize]
 [ApiController]
 [Route("group/{groupId}/file")]
-[Authorize]
-public class GroupFile(IFileService fileService, IBlobRepo blobRepo, IOptions<AzureBlobOptions> blobOptions)
-    : ControllerBase
+public class GroupFile(IFileService fileService, IOptions<AzureBlobOptions> blobOptions) : ControllerBase
 {
     [HttpGet("{fileId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -42,6 +41,7 @@ public class GroupFile(IFileService fileService, IBlobRepo blobRepo, IOptions<Az
     }
 
     [HttpPost]
+    [DisableFormValueModelBinding]
     [ProducesResponseType(StatusCodes.Status201Created)]
     public async Task<ActionResult<GetFileDto>> Create(string groupId)
     {
@@ -57,26 +57,23 @@ public class GroupFile(IFileService fileService, IBlobRepo blobRepo, IOptions<Az
 
         while (await reader.ReadNextSectionAsync() is { } section)
         {
-            // Process the form data part
             if (!ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out var contentDisposition))
                 continue;
 
             if (MultipartRequestHelper.HasFileContentDisposition(contentDisposition))
             {
-                // This is the file section, process it as a stream without loading into memory
                 fileSection = section.AsFileSection();
                 break;
             }
 
             if (MultipartRequestHelper.HasFormDataContentDisposition(contentDisposition))
             {
-                // This is the form data section, process the DTO
                 var key = HeaderUtilities.RemoveQuotes(contentDisposition.Name).Value;
                 if (key != "dto") continue;
 
                 using var streamReader = new StreamReader(section.Body);
                 var value = await streamReader.ReadToEndAsync();
-                dto = JsonConvert.DeserializeObject<CreateFileDto>(value); // Deserialize the DTO
+                dto = JsonConvert.DeserializeObject<CreateFileDto>(value);
             }
         }
 
@@ -111,5 +108,4 @@ public class GroupFile(IFileService fileService, IBlobRepo blobRepo, IOptions<Az
         await fileService.Delete(groupId, fileId);
         return NoContent();
     }
-    
 }

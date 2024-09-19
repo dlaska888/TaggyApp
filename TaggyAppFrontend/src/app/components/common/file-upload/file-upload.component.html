@@ -12,6 +12,8 @@
                   [outlined]="true" severity="success" [disabled]="!files || files.length === 0" />
                <p-button (onClick)="clearEvent(clearCallback)" icon="pi pi-times" [rounded]="true" [outlined]="true"
                   severity="danger" [disabled]="!files || files.length === 0" />
+               <p-dropdown *ngIf="pagedGroups" [options]="pagedGroups.items" [(ngModel)]="selectedGroup" optionLabel="name"
+                  placeholder="Select Group" />
             </div>
             <div class="flex flex-column justify-content-center align-items-end gap-2">
                <p-progressBar [value]="totalSizePercent" [showValue]="false"

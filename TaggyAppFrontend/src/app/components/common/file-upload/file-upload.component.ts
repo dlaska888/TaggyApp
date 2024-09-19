@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { MessageService, PrimeNGConfig } from 'primeng/api';
 import {
   FileSelectEvent,
@@ -19,7 +19,11 @@ import { RoundProgressComponent } from 'angular-svg-round-progressbar';
 import { TaggyAppApiConstant } from '../../../constants/taggyAppApi.constant';
 import { TaggyAppApiService } from '../../../services/taggyAppApi.service';
 import { environment } from '../../../../environments/environment.development';
-import { ProgressFile } from '../../../models/ui/ProgressFile';
+import { ProgressFile } from '../../../models/ui/progressFile';
+import { PagedResults } from '../../../models/dtos/pagedResults';
+import { GetGroupDto } from '../../../models/dtos/group/getGroupDto';
+import { DropdownModule } from 'primeng/dropdown';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'file-upload',
@@ -32,24 +36,39 @@ import { ProgressFile } from '../../../models/ui/ProgressFile';
     BadgeModule,
     ProgressBarModule,
     ToastModule,
+    DropdownModule,
+    FormsModule,
     HttpClientModule,
     CommonModule,
     RoundProgressComponent,
   ],
   providers: [MessageService],
 })
-export class FileUploadComponent {
+export class FileUploadComponent implements OnInit {
   files: ProgressFile[] = [];
   uploadedFiles: ProgressFile[] = [];
   totalSize: number = 0;
   totalSizePercent: number = 0;
   sizeLimit: number = environment.taggyappApi.fileSizeLimit;
 
+  pagedGroups!: PagedResults<GetGroupDto>;
+  selectedGroup!: GetGroupDto;
+
+  @Output()
+  onFilesUploaded: EventEmitter<void> = new EventEmitter<void>();
+
   constructor(
     private config: PrimeNGConfig,
     private taggyAppApiService: TaggyAppApiService,
     private messageService: MessageService
   ) {}
+
+  ngOnInit() {
+    this.taggyAppApiService.getUserGroups().subscribe((response) => {
+      this.pagedGroups = response.body!;
+      this.selectedGroup = this.pagedGroups.items[0];
+    });
+  }
 
   uploadHandler(event: FileUploadHandlerEvent) {
     for (const file of this.files) {
@@ -126,33 +145,36 @@ export class FileUploadComponent {
 
   private uploadFile(file: ProgressFile): void {
     const formData = new FormData();
-    const dto = { name: file.file.name };
+    const dto = { untrustedName: file.file.name };
     formData.append('dto', JSON.stringify(dto));
     formData.append('file', file.file);
 
     file.status = 'uploading';
-    const request = this.taggyAppApiService.uploadFile(formData).subscribe(
-      (event: HttpEvent<any>) => {
-        if (event.type === HttpEventType.UploadProgress) {
-          if (event.total) {
-            file.progress = Math.round((100 * event.loaded) / event.total);
+    const request = this.taggyAppApiService
+      .uploadFile(this.selectedGroup.id, formData)
+      .subscribe(
+        (event: HttpEvent<any>) => {
+          if (event.type === HttpEventType.UploadProgress) {
+            if (event.total) {
+              file.progress = Math.round((100 * event.loaded) / event.total);
+            }
+          } else if (event.type === HttpEventType.Response) {
+            file.status = 'success';
+            this.removeFile(file);
+            this.uploadedFiles.push(file);
+            this.onFilesUploaded.emit();
           }
-        } else if (event.type === HttpEventType.Response) {
-          file.status = 'success';
-          this.removeFile(file);
-          this.uploadedFiles.push(file);
+        },
+        (error) => {
+          file.status = 'failed';
+          console.error('Upload failed', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Upload failed',
+            detail: error.message,
+          });
         }
-      },
-      (error) => {
-        file.status = 'failed';
-        console.error('Upload failed', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Upload failed',
-          detail: error.message,
-        });
-      }
-    );
+      );
     file.request = request;
   }
 

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Sieve.Models;
 using TaggyAppBackend.Api.Exceptions;
 using TaggyAppBackend.Api.Helpers.Interfaces;
@@ -11,6 +12,7 @@ using TaggyAppBackend.Api.Models.Dtos.Tag;
 using TaggyAppBackend.Api.Models.Entities;
 using TaggyAppBackend.Api.Models.Entities.Master;
 using TaggyAppBackend.Api.Models.Enums;
+using TaggyAppBackend.Api.Models.Options;
 using TaggyAppBackend.Api.Providers;
 using TaggyAppBackend.Api.Repos.Interfaces;
 using TaggyAppBackend.Api.Services.Interfaces;
@@ -21,6 +23,7 @@ namespace TaggyAppBackend.Api.Services;
 public class FileService(
     AppDbContext dbContext,
     IBlobRepo blobRepo,
+    IOptions<AzureBlobOptions> blobOptions,
     IGroupUserService groupUserService,
     IAuthContextProvider authContext,
     IPagingHelper pagingHelper,
@@ -48,15 +51,16 @@ public class FileService(
             .Include(x => x.Tags)
             .Where(x => x.GroupId == groupId)
             .AsNoTracking();
-        
+
         return await GetPagedFiles(files, query);
     }
 
     public async Task<GetFileDto> GetById(string groupId, string fileId)
     {
-        var paged = mapper.Map<GetFileDto>(await FindFile(groupId, fileId));
-        paged.DownloadPath = await blobRepo.GetBlobDownloadPath(fileId, groupId);
-        return paged;
+        var file = await FindFile(groupId, fileId);
+        var mapped = mapper.Map<GetFileDto>(file);
+        mapped.Url = await blobRepo.GetBlobDownloadPath(file.TrustedName, groupId);
+        return mapped;
     }
 
     public async Task<GetFileDto> Create(string groupId, CreateFileDto dto, Stream stream)
@@ -69,11 +73,17 @@ public class FileService(
 
         var fileName = $"{file.Id}{Path.GetExtension(dto.UntrustedName)}";
         file.TrustedName = fileName;
-
-        var totalBytes = await blobRepo.UploadBlob(fileName, groupId, stream);
-        if (totalBytes == -1)
-            throw new BadRequestException("Failed to upload file");
-        file.Size = totalBytes;
+        
+        try
+        {
+            var blobInfo = await blobRepo.UploadBlob(fileName, groupId, stream);
+            file.ContentType = blobInfo.ContentType;
+            file.Size = blobInfo.Size;
+        }
+        catch (BlobSizeExceededException e)
+        {
+            throw new BadRequestException($"File size exceeds the {blobOptions.Value.MaxBlobSize}B limit");
+        }
 
         dbContext.Files.Add(file);
         var fileWithTags = await SaveFileWithTags(file, dto.Tags);
@@ -181,19 +191,21 @@ public class FileService(
 
     private async Task<PagedResults<GetFileDto>> GetPagedFiles(IQueryable<File> files, SieveModel query)
     {
-        var paged = await pagingHelper.ToPagedResults<File, GetFileDto>(files, query);
-        var result = paged.Items.Select(async x =>
+        return await pagingHelper.ToPagedResults<File, GetFileDto>(files, query, x => new GetFileDto
         {
-            x.DownloadPath = await blobRepo.GetBlobDownloadPath(x.Id, x.GroupId);
-            return x;
+            Id = x.Id,
+            CreatedAt = x.CreatedAt,
+            
+            Name = x.UntrustedName,
+            Description = x.Description,
+            Url = blobRepo.GetBlobDownloadPath(x.TrustedName, x.GroupId).Result,
+            ContentType = x.ContentType,
+            Size = x.Size,
+            
+            CreatorId = x.CreatorId,
+            GroupId = x.GroupId,
+            Tags = x.Tags.Select(mapper.Map<GetTagDto>).ToList()
         });
-
-        return new PagedResults<GetFileDto>(
-            await Task.WhenAll(result),
-            paged.PageNum,
-            paged.PageSize,
-            paged.TotalItems
-        );
     }
 
     #endregion

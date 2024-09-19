@@ -17,6 +17,10 @@ public class File : Entity
     [MaxLength(255)]
     public string? Description { get; set; }
 
+    [Sieve(CanFilter = true)]
+    [MaxLength(255)]
+    public string ContentType { get; set; } = null!;
+
     public long Size { get; set; }
 
     [MaxLength(36)] public string CreatorId { get; set; } = null!;

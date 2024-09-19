@@ -1,8 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
@@ -70,7 +68,6 @@ namespace TaggyAppBackend.Api.Controllers
             var bytesRead =
                 await blobRepo.UploadBlob(fileSection.FileName, "files", fileSection.FileStream);
 
-            // Do something with the DTO (myDto)
             return Ok(new { message = "File uploaded successfully", bytesRead });
         }
     }
