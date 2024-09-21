@@ -1,8 +1,12 @@
-﻿namespace TaggyAppBackend.Api.Repos.Interfaces;
+using TaggyAppBackend.Api.Models.Repo;
+
+namespace TaggyAppBackend.Api.Repos.Interfaces;
 
 public interface IBlobRepo
 {
-    string GetBlobReadSasToken(string blobName);
-    string GetBlobUploadSasToken(string blobName);
-    Task<bool> DeleteBlob(string path);
+    Task<string> GetBlobDownloadPath(string blobName, string containerName);
+    Task<string> GetContainerDownloadPath(string containerName);
+    Task<Stream> DownloadBlob(string blobName, string containerName);
+    Task<BlobInfo> UploadBlob(string blobName, string containerName, Stream stream);
+    Task<bool> DeleteBlob(string blobName, string containerName);
 }

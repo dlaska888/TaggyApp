@@ -2,6 +2,7 @@ import {
   HttpClient,
   HttpContext,
   HttpContextToken,
+  HttpEvent,
   HttpResponse,
 } from '@angular/common/http';
 import { TaggyAppApiConstant } from '../constants/taggyAppApi.constant';
@@ -13,6 +14,9 @@ import { ExternalAuthDto } from '../models/dtos/auth/externalAuthDto';
 import { TokenDto } from '../models/dtos/auth/tokenDto';
 import { GetAccountDto } from '../models/dtos/account/getAccountDto';
 import { ApiTokenConstant } from '../constants/apiToken.constant';
+import { GetFileDto } from '../models/dtos/file/getFileDto';
+import { PagedResults } from '../models/dtos/pagedResults';
+import { GetGroupDto } from '../models/dtos/group/getGroupDto';
 
 @Injectable({
   providedIn: 'root',
@@ -66,8 +70,34 @@ export class TaggyAppApiService {
   }
 
   public getAccount(): Observable<HttpResponse<GetAccountDto>> {
-    return this.http.get<GetAccountDto>(TaggyAppApiConstant.GET_ACCOUNT, {
+    return this.http.get<GetAccountDto>(TaggyAppApiConstant.ACCOUNT, {
       observe: 'response',
     });
+  }
+
+  public getUserFiles(): Observable<HttpResponse<PagedResults<GetFileDto>>> {
+    return this.http.get<PagedResults<GetFileDto>>(TaggyAppApiConstant.FILE, {
+      observe: 'response',
+    });
+  }
+
+  public getUserGroups(): Observable<HttpResponse<PagedResults<GetGroupDto>>> {
+    return this.http.get<PagedResults<GetGroupDto>>(TaggyAppApiConstant.GROUP, {
+      observe: 'response',
+    });
+  }
+
+  public uploadFile(
+    groupId: string,
+    formData: FormData
+  ): Observable<HttpEvent<any>> {
+    return this.http.post(
+      `${TaggyAppApiConstant.GROUP}/${groupId}/file`,
+      formData,
+      {
+        reportProgress: true,
+        observe: 'events',
+      }
+    );
   }
 }

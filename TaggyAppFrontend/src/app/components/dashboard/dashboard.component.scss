@@ -1,0 +1,47 @@
+.dashboard {
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow-y: hide;
+  position: relative;
+
+  .dashboard-content {
+    overflow-y: scroll;
+    height: 100vh;
+  }
+
+  .dashboard-button {
+    max-height: 100vh;
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+  }
+
+  .file-dialog {
+    img {
+      height: auto;
+      width: 90vw;
+      object-fit: contain;
+    }
+
+    video {
+      height: 90vh;
+      width: 90vw;
+      background: black;
+      object-fit: contain;
+    }
+
+    a{
+      text-decoration: none;
+      i{
+        font-size: 3rem;
+      }
+    }
+  }
+}
+
+:host ::ng-deep {
+  .p-sidebar {
+    padding: 0;
+    max-height: 100vh;
+  }
+}

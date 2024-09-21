@@ -39,13 +39,12 @@ import { PathConstant } from '../../constants/path.constant';
     FloatLabelModule,
     SocialLoginModule,
     GoogleSigninButtonModule,
-    RouterModule
+    RouterModule,
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
 export class LoginComponent implements OnInit {
-
   pathConst = PathConstant;
 
   constructor(
@@ -103,10 +102,6 @@ export class LoginComponent implements OnInit {
   }
 
   private tryNavigateToDashboard() {
-    this.authService.tryAuthenticateUser().then((isAuthenticated) => {
-      if (isAuthenticated) {
-        this.router.navigate([PathConstant.DASHBOARD]);
-      }
-    });
+    this.router.navigate([PathConstant.DASHBOARD]);
   }
 }

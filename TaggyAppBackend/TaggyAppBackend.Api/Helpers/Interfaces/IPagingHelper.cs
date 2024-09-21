@@ -8,6 +8,7 @@ public interface IPagingHelper
 {
     public Task<PagedResults<TGetDto>> ToPagedResults<TEntity, TGetDto>(
         IQueryable<TEntity> records,
-        SieveModel query)
+        SieveModel query,
+        Func<TEntity, TGetDto>? customMapping = null)
         where TGetDto : IGetDto;
 }

@@ -1,14 +1,18 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Sieve.Models;
 using TaggyAppBackend.Api.Exceptions;
 using TaggyAppBackend.Api.Helpers.Interfaces;
 using TaggyAppBackend.Api.Models.Dtos;
 using TaggyAppBackend.Api.Models.Dtos.File;
+using TaggyAppBackend.Api.Models.Dtos.Group;
 using TaggyAppBackend.Api.Models.Dtos.Tag;
 using TaggyAppBackend.Api.Models.Entities;
 using TaggyAppBackend.Api.Models.Entities.Master;
 using TaggyAppBackend.Api.Models.Enums;
+using TaggyAppBackend.Api.Models.Options;
 using TaggyAppBackend.Api.Providers;
 using TaggyAppBackend.Api.Repos.Interfaces;
 using TaggyAppBackend.Api.Services.Interfaces;
@@ -19,10 +23,10 @@ namespace TaggyAppBackend.Api.Services;
 public class FileService(
     AppDbContext dbContext,
     IBlobRepo blobRepo,
+    IOptions<AzureBlobOptions> blobOptions,
     IGroupUserService groupUserService,
     IAuthContextProvider authContext,
     IPagingHelper pagingHelper,
-    IFileNameHelper fileNameHelper,
     IMapper mapper) : IFileService
 {
     public async Task<PagedResults<GetFileDto>> GetAll(SieveModel query)
@@ -35,7 +39,7 @@ public class FileService(
             .Where(x => x.Group.GroupUsers.Any(u => u.UserId == userId))
             .AsNoTracking();
 
-        return await pagingHelper.ToPagedResults<File, GetFileDto>(files, query);
+        return await GetPagedFiles(files, query);
     }
 
     public async Task<PagedResults<GetFileDto>> GetAllByGroupId(string groupId, SieveModel query)
@@ -48,33 +52,43 @@ public class FileService(
             .Where(x => x.GroupId == groupId)
             .AsNoTracking();
 
-        return await pagingHelper.ToPagedResults<File, GetFileDto>(files, query);
+        return await GetPagedFiles(files, query);
     }
 
     public async Task<GetFileDto> GetById(string groupId, string fileId)
     {
         var file = await FindFile(groupId, fileId);
-        var result = mapper.Map<GetFileDto>(file);
-        result.SasToken = blobRepo.GetBlobReadSasToken(fileNameHelper.GetFileBlobName(file));
-        return mapper.Map<GetFileDto>(await FindFile(groupId, fileId));
+        var mapped = mapper.Map<GetFileDto>(file);
+        mapped.Url = await blobRepo.GetBlobDownloadPath(file.TrustedName, groupId);
+        return mapped;
     }
 
-    public async Task<GetFileDto> Create(string groupId, CreateFileDto dto)
+    public async Task<GetFileDto> Create(string groupId, CreateFileDto dto, Stream stream)
     {
         await groupUserService.VerifyGroupAccess(groupId);
 
         var file = mapper.Map<File>(dto);
         file.CreatorId = authContext.GetUserId();
         file.GroupId = groupId;
-        file.Path = "path";
+
+        var fileName = $"{file.Id}{Path.GetExtension(dto.UntrustedName)}";
+        file.TrustedName = fileName;
+        
+        try
+        {
+            var blobInfo = await blobRepo.UploadBlob(fileName, groupId, stream);
+            file.ContentType = blobInfo.ContentType;
+            file.Size = blobInfo.Size;
+        }
+        catch (BlobSizeExceededException e)
+        {
+            throw new BadRequestException($"File size exceeds the {blobOptions.Value.MaxBlobSize}B limit");
+        }
 
         dbContext.Files.Add(file);
         var fileWithTags = await SaveFileWithTags(file, dto.Tags);
 
-        var result = mapper.Map<GetFileDto>(fileWithTags);
-        result.SasToken = blobRepo.GetBlobUploadSasToken(fileNameHelper.GetFileBlobName(file));
-
-        return result;
+        return mapper.Map<GetFileDto>(fileWithTags);
     }
 
     public async Task<GetFileDto> Update(string groupId, string fileId, UpdateFileDto dto)
@@ -101,7 +115,13 @@ public class FileService(
         dbContext.Files.Remove(file);
         return
             await dbContext.SaveChangesAsync() > 0 &&
-            await blobRepo.DeleteBlob(fileNameHelper.GetFileBlobName(file));
+            await blobRepo.DeleteBlob(fileId, groupId);
+    }
+
+    public async Task<Stream> Download(string groupId, string fileId)
+    {
+        await groupUserService.VerifyGroupAccess(groupId);
+        return await blobRepo.DownloadBlob(fileId, groupId);
     }
 
     #region Private Methods
@@ -167,6 +187,25 @@ public class FileService(
             throw new NotFoundException("Group not found");
 
         return group;
+    }
+
+    private async Task<PagedResults<GetFileDto>> GetPagedFiles(IQueryable<File> files, SieveModel query)
+    {
+        return await pagingHelper.ToPagedResults<File, GetFileDto>(files, query, x => new GetFileDto
+        {
+            Id = x.Id,
+            CreatedAt = x.CreatedAt,
+            
+            Name = x.UntrustedName,
+            Description = x.Description,
+            Url = blobRepo.GetBlobDownloadPath(x.TrustedName, x.GroupId).Result,
+            ContentType = x.ContentType,
+            Size = x.Size,
+            
+            CreatorId = x.CreatorId,
+            GroupId = x.GroupId,
+            Tags = x.Tags.Select(mapper.Map<GetTagDto>).ToList()
+        });
     }
 
     #endregion

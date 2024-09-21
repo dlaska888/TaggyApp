@@ -41,13 +41,18 @@ builder.Services.AddScoped<IAuthContextProvider, AuthContextProvider>();
 builder.Services.AddScoped<ErrorHandlingMiddleWare>();
 
 builder.Services.AddScoped<IBlobRepo, BlobRepo>();
-builder.Services.AddScoped<IFileNameHelper, FileNameHelper>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IGroupUserService, GroupUserService>();
 builder.Services.AddScoped<ITagService, TagService>();
 
 builder.Services.AddAutoMapper(cfg => { cfg.AddProfile<DtoMappingProfile>(); });
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    // Set the maximum size for form data (including files) in bytes
+    options.MultipartBodyLengthLimit = 10737418240; // 100 MB
+});
 
 #endregion
 
@@ -69,7 +74,6 @@ builder.WebHost.ConfigureKestrel(options =>
 });
 builder.Services.Configure<FormOptions>(options =>
 {
-    options.MultipartBodyLengthLimit = long.MaxValue;
     options.BufferBody = false;
 });
 

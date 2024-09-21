@@ -6,9 +6,11 @@ public class GetFileDto : GetDto
 {
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
-    public string Path { get; set; } = null!;
-    public string OwnerId { get; set; } = null!;
-    public string OwnerName { get; set; } = null!;
-    public string SasToken { get; set; } = null!;
-    public List<GetTagDto> Tags { get; } = [];
+    public string Url { get; set; } = null!;
+    public string ContentType { get; set; } = null!;
+    public long Size { get; set; }
+
+    public string CreatorId { get; set; } = null!;
+    public string GroupId { get; set; } = null!;
+    public List<GetTagDto> Tags { get; set; } = [];
 }

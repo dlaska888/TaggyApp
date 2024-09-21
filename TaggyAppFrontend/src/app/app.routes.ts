@@ -5,15 +5,13 @@ import { PathConstant } from './constants/path.constant';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { authGuardFn } from './guards/auth.guard';
 import { IndexComponent } from './components/index/index.component';
+import { FileUploadComponent } from './components/common/file-upload/file-upload.component';
 
 export const routes: Routes = [
   { path: PathConstant.INDEX, component: IndexComponent, pathMatch: 'full' },
   { path: PathConstant.LOGIN, component: LoginComponent },
   { path: PathConstant.REGISTER, component: RegisterComponent },
-  {
-    path: PathConstant.DASHBOARD,
-    component: DashboardComponent,
-    canActivate: [authGuardFn],
-  },
+  { path: PathConstant.FILE_UPLOAD, component: FileUploadComponent },
+  { path: PathConstant.DASHBOARD, component: DashboardComponent, canActivate: [authGuardFn] },
   { path: '**', redirectTo: PathConstant.INDEX },
 ];

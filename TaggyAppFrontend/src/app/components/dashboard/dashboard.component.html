@@ -1,1 +1,54 @@
-<p>dashboard works!</p>
+<div class="dashboard">
+   <div class="dashboard-content">
+      <div *ngIf="pagedFiles" class="flex flex-column gap-4 p-4">
+         <div *ngFor="let file of pagedFiles.items" class="p-card flex justify-content-between p-2"
+            (click)="onFileClick(file)">
+            <h5 class="card-title">{{ file.name }}</h5>
+            <p class="card-text">{{ file.description }}</p>
+            <a href="{{ file.url }}" class="p-button p-1">Download</a>
+         </div>
+      </div>
+      <div *ngIf="pagedGroups">
+         <div *ngFor="let group of pagedGroups.items">
+            <div class="card">
+               <div class="card-body">
+                  <h5 class="card-title">{{ group.name }}</h5>
+                  <p class="card-text">{{ group.description }}</p>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+   <p-button label="Add" icon="pi pi-plus" class="dashboard-button" (onClick)="sidebarVisible = !sidebarVisible" />
+   <p-sidebar class="relative" [(visible)]="sidebarVisible" [fullScreen]="true" [position]="'bottom'"
+      [transitionOptions]="'200ms'">
+      <ng-template pTemplate="headless">
+         <file-upload (onFileUploaded)="onFilesUploaded()"></file-upload>
+         <p-button icon="pi pi-times" class="absolute top-0 left-50" (onClick)="sidebarVisible = false"></p-button>
+      </ng-template>
+   </p-sidebar>
+   <p-dialog header="File Viewer" [(visible)]="dialogVisible" [modal]="true" [closable]="true" [dismissableMask]="true"
+      class="file-dialog">
+      <ng-template pTemplate="headless">
+         <!-- For images -->
+         <ng-container *ngIf="clickedFile.contentType.startsWith('image/')">
+            <img [src]="clickedFile.url" [alt]="clickedFile.name">
+         </ng-container>
+
+         <!-- For videos -->
+         <ng-container *ngIf="clickedFile.contentType.startsWith('video/')">
+            <video [src]="clickedFile.url" controls>
+               Your browser does not support the video tag.
+            </video>
+         </ng-container>
+
+         <!-- For other types -->
+         <ng-container
+            *ngIf="!clickedFile.contentType.startsWith('image/') && !clickedFile.contentType.startsWith('video/')">
+            <a [href]="clickedFile.url" download="file" class="p-button p-4">
+               <i class="pi pi-download"></i>
+            </a>
+         </ng-container>
+      </ng-template>
+   </p-dialog>
+</div>
