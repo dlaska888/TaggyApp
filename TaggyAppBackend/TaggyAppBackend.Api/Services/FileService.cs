@@ -129,7 +129,6 @@ public class FileService(
     private async Task<File> SaveFileWithTags(File file, IEnumerable<CreateTagDto> tags)
     {
         await using var transaction = await dbContext.Database.BeginTransactionAsync();
-
         try
         {
             var group = await FindGroup(file.GroupId);

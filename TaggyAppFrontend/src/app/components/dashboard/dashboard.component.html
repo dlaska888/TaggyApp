@@ -33,8 +33,13 @@
       <ng-template pTemplate="headless">
          <div class="file-dialog-content">
             <div class="file-dialog-header">
-               <p-button icon="pi pi-times" styleClass="p-0" [text]="true" [rounded]="true" (onClick)="dialogVisible = false"></p-button>
-               <h3 *ngIf="clickedFile.name" class="m-0">{{ clickedFile.name }}</h3>
+               <p-button icon="pi pi-times" styleClass="p-0 w-2rem h-2rem" [text]="true" [rounded]="true"
+                  (onClick)="dialogVisible = false"></p-button>
+               <p-button *ngIf="supportedFileTypes.includes(clickedFile.contentType.split('/')[0])"
+                  icon="pi pi-download" styleClass="p-0 relative" [text]="true" [rounded]="true">
+                  <a class="absolute w-2rem h-2rem" [href]="clickedFile.url"></a>
+               </p-button>
+               <h3 *ngIf="clickedFile.name" class="m-0 px-2">{{ clickedFile.name }}</h3>
             </div>
             <!-- For images -->
             <ng-container *ngIf="clickedFile.contentType.startsWith('image/')">

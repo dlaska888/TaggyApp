@@ -1,4 +1,10 @@
-import { ChangeDetectorRef, Component, EventEmitter, OnInit, Output } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  OnInit,
+  Output,
+} from '@angular/core';
 import { MessageService, PrimeNGConfig } from 'primeng/api';
 import {
   FileSelectEvent,
@@ -24,6 +30,12 @@ import { PagedResults } from '../../../models/dtos/pagedResults';
 import { GetGroupDto } from '../../../models/dtos/group/getGroupDto';
 import { DropdownModule } from 'primeng/dropdown';
 import { FormsModule } from '@angular/forms';
+import {
+  AutoCompleteCompleteEvent,
+  AutoCompleteModule,
+} from 'primeng/autocomplete';
+import { GetTagDto } from '../../../models/dtos/tag/getTagDto';
+import { CreateTagDto } from '../../../models/dtos/tag/createTagDto';
 
 @Component({
   selector: 'file-upload',
@@ -38,6 +50,7 @@ import { FormsModule } from '@angular/forms';
     ToastModule,
     DropdownModule,
     FormsModule,
+    AutoCompleteModule,
     HttpClientModule,
     CommonModule,
     RoundProgressComponent,
@@ -53,6 +66,8 @@ export class FileUploadComponent implements OnInit {
 
   pagedGroups!: PagedResults<GetGroupDto>;
   selectedGroup!: GetGroupDto;
+
+  tagSuggestions: CreateTagDto[] = [];
 
   @Output()
   onFilesUploaded: EventEmitter<void> = new EventEmitter<void>();
@@ -81,7 +96,7 @@ export class FileUploadComponent implements OnInit {
 
   onSelectedFiles(event: FileSelectEvent) {
     for (const file of event.files) {
-      const exists = this.files.some((f) => f.file.name === file.name);
+      const exists = this.files.some((f) => f.browserFile.name === file.name);
       if (!exists) {
         this.files.push(new ProgressFile(file));
         this.totalSize += file.size;
@@ -143,11 +158,33 @@ export class FileUploadComponent implements OnInit {
     return `${formattedSize} ${sizes![i]}`;
   }
 
+  onTagSuggestionComplete(event: AutoCompleteCompleteEvent) {
+    this.tagSuggestions = this.selectedGroup.tags.filter((t) =>
+      t.name.toLowerCase().startsWith(event.query.toLowerCase())
+    );
+  }
+
+  onTagKeyUp(event: KeyboardEvent, file: ProgressFile) {
+    console.log(event);
+    if (event.key == ' ' || event.code == 'Space') {
+      let tokenInput = event.srcElement as any;
+      if (tokenInput.value) {
+        if (!file.createFileDto.tags) {
+          file.createFileDto.tags = [];
+        }
+        file.createFileDto.tags.push({
+          name: tokenInput.value.trim(),
+        });
+        tokenInput.value = '';
+      }
+    }
+  }
+
   private uploadFile(file: ProgressFile): void {
     const formData = new FormData();
-    const dto = { untrustedName: file.file.name };
-    formData.append('dto', JSON.stringify(dto));
-    formData.append('file', file.file);
+    file.createFileDto.untrustedName = file.browserFile.name;
+    formData.append('dto', JSON.stringify(file.createFileDto));
+    formData.append('file', file.browserFile);
 
     file.status = 'uploading';
     const request = this.taggyAppApiService
@@ -186,8 +223,10 @@ export class FileUploadComponent implements OnInit {
       file.progress = 0;
       return;
     }
-    this.files = this.files.filter((f) => f.file.name !== file.file.name);
-    this.totalSize -= file.file.size || 0;
+    this.files = this.files.filter(
+      (f) => f.browserFile.name !== file.browserFile.name
+    );
+    this.totalSize -= file.browserFile.size || 0;
     this.totalSizePercent = (this.totalSize / this.sizeLimit) * 100;
   }
 }

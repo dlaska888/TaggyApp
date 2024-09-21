@@ -19,6 +19,11 @@ public class DtoMappingProfile : Profile
                 opt.MapFrom((group, _, _, context) =>
                     group.GroupUsers.Select(ug => context.Mapper.Map<GetGroupUserDto>(ug))
                 )
+            )
+            .ForMember(f => f.Tags, opt =>
+                opt.MapFrom((file, _, _, context) =>
+                    file.Tags.Select(t => context.Mapper.Map<GetTagDto>(t))
+                ) 
             );
         CreateMap<CreateGroupDto, Group>();
         CreateMap<UpdateGroupDto, Group>();

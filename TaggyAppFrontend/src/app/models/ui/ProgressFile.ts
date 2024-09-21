@@ -1,13 +1,16 @@
 import { Subscription } from "rxjs";
+import { CreateFileDto } from "../dtos/file/createFileDto";
 
 export class ProgressFile {
-    file : File;
+    readonly browserFile : File;
+    readonly createFileDto : CreateFileDto;
     progress : number;
     request? : Subscription | null;
     status? : 'uploading' | 'success' | 'failed' | 'cancelled';
 
     constructor(file : File) {
-        this.file = file;
+        this.browserFile = file;
         this.progress = 0;
+        this.createFileDto = {} as CreateFileDto;
     }
 }
