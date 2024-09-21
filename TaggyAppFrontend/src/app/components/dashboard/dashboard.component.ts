@@ -36,6 +36,8 @@ export class DashboardComponent implements OnInit {
 
   clickedFile!: GetFileDto;
 
+  supportedFileTypes: string[] = ['image', 'video', 'audio'];
+
   constructor(
     private taggyAppApiService: TaggyAppApiService,
     private sanitizer: DomSanitizer,

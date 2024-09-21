@@ -5,7 +5,7 @@
   position: relative;
 
   .dashboard-content {
-    overflow-y: scroll;
+    overflow-y: auto;
     height: 100vh;
   }
 
@@ -17,22 +17,45 @@
   }
 
   .file-dialog {
+    .file-dialog-header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 95vw;
+      max-height: 10vh;
+      color: white;
+
+      h3 {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .file-dialog-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
     img {
       height: auto;
-      width: 90vw;
+      max-height: 85vh;
+      width: 95vw;
       object-fit: contain;
     }
 
     video {
-      height: 90vh;
-      width: 90vw;
+      max-height: 90vh;
+      width: 95vw;
       background: black;
       object-fit: contain;
     }
 
-    a{
+    a {
       text-decoration: none;
-      i{
+      i {
         font-size: 3rem;
       }
     }
@@ -43,5 +66,14 @@
   .p-sidebar {
     padding: 0;
     max-height: 100vh;
+  }
+
+  .p-dialog {
+    max-height: 100vh !important;
+    box-shadow: none;
+  }
+
+  .p-button.p-button-text {
+    color: white;
   }
 }

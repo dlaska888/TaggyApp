@@ -28,7 +28,7 @@ public class BlobRepo : IBlobRepo
         _client = new BlobServiceClient(serviceUri, credentials);
     }
 
-    public async Task<string> GetBlobDownloadPath(string blobName, string containerName)
+    public async Task<string> GetBlobDownloadPath(string blobName, string containerName, string? friendlyName = null)
     {
         var container = await GetContainer(containerName);
         var blob = container.GetBlobClient(blobName);
@@ -36,7 +36,8 @@ public class BlobRepo : IBlobRepo
         {
             BlobContainerName = containerName,
             BlobName = blobName,
-            Resource = "b"
+            Resource = "b",
+            ContentDisposition = $"attachment; filename={friendlyName ?? blobName}"
         };
 
         sasBuilder.SetPermissions(BlobSasPermissions.Read);

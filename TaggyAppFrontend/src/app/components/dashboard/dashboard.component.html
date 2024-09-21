@@ -19,7 +19,8 @@
          </div>
       </div>
    </div>
-   <p-button label="Add" icon="pi pi-plus" class="dashboard-button" (onClick)="sidebarVisible = !sidebarVisible" />
+   <p-button label="Add" icon="pi pi-plus" class="dashboard-button bg-white" [outlined]="true"
+      (onClick)="sidebarVisible = !sidebarVisible" />
    <p-sidebar class="relative" [(visible)]="sidebarVisible" [fullScreen]="true" [position]="'bottom'"
       [transitionOptions]="'200ms'">
       <ng-template pTemplate="headless">
@@ -30,24 +31,38 @@
    <p-dialog header="File Viewer" [(visible)]="dialogVisible" [modal]="true" [closable]="true" [dismissableMask]="true"
       class="file-dialog">
       <ng-template pTemplate="headless">
-         <!-- For images -->
-         <ng-container *ngIf="clickedFile.contentType.startsWith('image/')">
-            <img [src]="clickedFile.url" [alt]="clickedFile.name">
-         </ng-container>
+         <div class="file-dialog-content">
+            <div class="file-dialog-header">
+               <p-button icon="pi pi-times" styleClass="p-0" [text]="true" [rounded]="true" (onClick)="dialogVisible = false"></p-button>
+               <h3 *ngIf="clickedFile.name" class="m-0">{{ clickedFile.name }}</h3>
+            </div>
+            <!-- For images -->
+            <ng-container *ngIf="clickedFile.contentType.startsWith('image/')">
+               <img [src]="clickedFile.url" [alt]="clickedFile.name">
+            </ng-container>
 
-         <!-- For videos -->
-         <ng-container *ngIf="clickedFile.contentType.startsWith('video/')">
-            <video [src]="clickedFile.url" controls>
-               Your browser does not support the video tag.
-            </video>
-         </ng-container>
+            <!-- For videos -->
+            <ng-container *ngIf="clickedFile.contentType.startsWith('video/')">
+               <video [src]="clickedFile.url" controls>
+                  Your browser does not support the video tag.
+               </video>
+            </ng-container>
+
+            <!-- audio -->
+            <ng-container *ngIf="clickedFile.contentType.startsWith('audio/')">
+               <audio [src]="clickedFile.url" controls>
+                  Your browser does not support the audio tag.
+               </audio>
+            </ng-container>
+         </div>
 
          <!-- For other types -->
-         <ng-container
-            *ngIf="!clickedFile.contentType.startsWith('image/') && !clickedFile.contentType.startsWith('video/')">
-            <a [href]="clickedFile.url" download="file" class="p-button p-4">
-               <i class="pi pi-download"></i>
-            </a>
+         <ng-container *ngIf="!supportedFileTypes.includes(clickedFile.contentType.split('/')[0])">
+            <div class="flex justify-content-center">
+               <a [href]="clickedFile.url" download="file" class="p-button p-4">
+                  <i class="pi pi-download"></i>
+               </a>
+            </div>
          </ng-container>
       </ng-template>
    </p-dialog>

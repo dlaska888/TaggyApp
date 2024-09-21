@@ -73,7 +73,7 @@ public class FileService(
 
         var fileName = $"{file.Id}{Path.GetExtension(dto.UntrustedName)}";
         file.TrustedName = fileName;
-        
+
         try
         {
             var blobInfo = await blobRepo.UploadBlob(fileName, groupId, stream);
@@ -191,17 +191,17 @@ public class FileService(
 
     private async Task<PagedResults<GetFileDto>> GetPagedFiles(IQueryable<File> files, SieveModel query)
     {
-        return await pagingHelper.ToPagedResults<File, GetFileDto>(files, query, x => new GetFileDto
+        return await pagingHelper.ToPagedResults<File, GetFileDto>(files, query, async x => new GetFileDto
         {
             Id = x.Id,
             CreatedAt = x.CreatedAt,
-            
+
             Name = x.UntrustedName,
             Description = x.Description,
-            Url = blobRepo.GetBlobDownloadPath(x.TrustedName, x.GroupId).Result,
+            Url = await blobRepo.GetBlobDownloadPath(x.TrustedName, x.GroupId, x.UntrustedName),
             ContentType = x.ContentType,
             Size = x.Size,
-            
+
             CreatorId = x.CreatorId,
             GroupId = x.GroupId,
             Tags = x.Tags.Select(mapper.Map<GetTagDto>).ToList()
