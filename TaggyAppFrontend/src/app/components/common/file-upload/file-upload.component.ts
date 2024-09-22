@@ -22,7 +22,6 @@ import {
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ToastModule } from 'primeng/toast';
 import { RoundProgressComponent } from 'angular-svg-round-progressbar';
-import { TaggyAppApiConstant } from '../../../constants/taggyAppApi.constant';
 import { TaggyAppApiService } from '../../../services/taggyAppApi.service';
 import { environment } from '../../../../environments/environment.development';
 import { ProgressFile } from '../../../models/ui/progressFile';
@@ -34,8 +33,9 @@ import {
   AutoCompleteCompleteEvent,
   AutoCompleteModule,
 } from 'primeng/autocomplete';
-import { GetTagDto } from '../../../models/dtos/tag/getTagDto';
 import { CreateTagDto } from '../../../models/dtos/tag/createTagDto';
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { FileSizePipe } from "../../../pipes/file-size.pipe";
 
 @Component({
   selector: 'file-upload',
@@ -50,11 +50,13 @@ import { CreateTagDto } from '../../../models/dtos/tag/createTagDto';
     ToastModule,
     DropdownModule,
     FormsModule,
+    FloatLabelModule,
     AutoCompleteModule,
     HttpClientModule,
     CommonModule,
     RoundProgressComponent,
-  ],
+    FileSizePipe
+],
   providers: [MessageService],
 })
 export class FileUploadComponent implements OnInit {
@@ -73,7 +75,6 @@ export class FileUploadComponent implements OnInit {
   onFilesUploaded: EventEmitter<void> = new EventEmitter<void>();
 
   constructor(
-    private config: PrimeNGConfig,
     private taggyAppApiService: TaggyAppApiService,
     private messageService: MessageService
   ) {}
@@ -82,6 +83,7 @@ export class FileUploadComponent implements OnInit {
     this.taggyAppApiService.getUserGroups().subscribe((response) => {
       this.pagedGroups = response.body!;
       this.selectedGroup = this.pagedGroups.items[0];
+      this.tagSuggestions = this.selectedGroup.tags;
     });
   }
 
@@ -144,18 +146,7 @@ export class FileUploadComponent implements OnInit {
   }
 
   formatSize(bytes: number) {
-    const k = 1024;
-    const dm = 1;
-    const sizes = this.config.translation.fileSizeTypes;
-
-    if (bytes === 0) {
-      return `0 ${sizes![0]}`;
-    }
-
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    const formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
-
-    return `${formattedSize} ${sizes![i]}`;
+    
   }
 
   onTagSuggestionComplete(event: AutoCompleteCompleteEvent) {

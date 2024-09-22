@@ -9,9 +9,14 @@ import { SidebarModule } from 'primeng/sidebar';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { Observable } from 'rxjs';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { DomSanitizer } from '@angular/platform-browser';
+import { DataViewLazyLoadEvent, DataViewModule } from 'primeng/dataview';
+import { BadgeModule } from 'primeng/badge';
+import { SieveModelDto } from '../../models/dtos/sieveModelDto';
+import { FileSizePipe } from '../../pipes/file-size.pipe';
+import { SelectItem } from 'primeng/api';
+import { DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
+import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 
 @Component({
   selector: 'app-dashboard',
@@ -22,7 +27,12 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
     ButtonModule,
     CardModule,
     DialogModule,
+    DataViewModule,
+    BadgeModule,
+    DropdownModule,
+    PaginatorModule,
     FileUploadComponent,
+    FileSizePipe,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
@@ -34,14 +44,19 @@ export class DashboardComponent implements OnInit {
   sidebarVisible: boolean = false;
   dialogVisible: boolean = false;
 
-  clickedFile!: GetFileDto;
+  selectedFile!: GetFileDto;
 
   supportedFileTypes: string[] = ['image', 'video', 'audio'];
 
+  sortOptions!: SelectItem[];
+  sortField!: string;
+
+  currentPage: number = 1;
+  rows: number = 10;
+
   constructor(
     private taggyAppApiService: TaggyAppApiService,
-    private sanitizer: DomSanitizer,
-    private http: HttpClient
+    public sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -49,6 +64,10 @@ export class DashboardComponent implements OnInit {
       this.pagedGroups = response.body!;
     });
     this.getFiles();
+    this.sortOptions = [
+      { label: 'Name', value: 'name' },
+      { label: 'Name-', value: '-name' }
+  ];
   }
 
   onFilesUploaded(): void {
@@ -56,16 +75,26 @@ export class DashboardComponent implements OnInit {
   }
 
   onFileClick(file: GetFileDto): void {
-    this.clickedFile = file;
+    this.selectedFile = file;
     this.dialogVisible = true;
+  }
+
+  onPageChange(event: PaginatorState) {
+    this.rows = event.rows!;
+    this.getFiles(new SieveModelDto(event.page! + 1, event.rows));
+  }
+
+  onSortChange(event: DropdownChangeEvent) {
+    this.sortField = event.value;
+    this.getFiles(new SieveModelDto(this.currentPage, this.rows, this.sortField));
   }
 
   onEmbedError(): void {
     console.error('Error loading file');
   }
 
-  private getFiles(): void {
-    this.taggyAppApiService.getUserFiles().subscribe((response) => {
+  private getFiles(query: SieveModelDto = new SieveModelDto(1, this.rows)): void {
+    this.taggyAppApiService.getUserFiles(query).subscribe((response) => {
       this.pagedFiles = response.body!;
     });
   }

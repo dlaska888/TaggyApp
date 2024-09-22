@@ -2,20 +2,24 @@
   .p-fileupload-content {
     flex: 0 1 auto;
     overflow-y: scroll;
-    height: calc(100vh - 89px); 
+    height: calc(100vh - 89px);
 
     .p-progressbar {
       position: inherit;
       overflow: hidden;
     }
+
+    .p-float-label {
+      input {
+        &::placeholder {
+          opacity: 1;
+        }
+      }
+    }
   }
 
   .file-progressbar .p-progressbar-determinate .p-progressbar-value {
     height: 0.25rem;
-  }
-
-  .p-fileupload-content > p-progressbar {
-    display: none;
   }
 
   .progress-text {

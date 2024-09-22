@@ -29,20 +29,25 @@
          <div *ngIf="files.length > 0" class="flex flex-wrap justify-content-center gap-5">
             <div *ngFor="let file of files; let i = index"
                class="file-card card flex m-0 flex-column sm:flex-row border-1 surface-border justify-content-between w-12 p-3 gap-3">
-               <div class="flex-1 flex flex-column w-12 sm:w-3 justify-content-center min-w-0">
+               <div class="flex-1 flex flex-column justify-content-center min-w-0 w-12 sm:w-3">
                   <p class="m-0 font-semibold text-ellipsis">{{
                      file.browserFile.name }}</p>
                   <p-badge *ngIf="file.status === 'failed'" [value]="file.status" severity="danger" />
                   <p-badge *ngIf="file.status === 'cancelled'" [value]="file.status" severity="warning" />
                </div>
-               <div class="flex flex-row justify-content-evenly align-items-center w-12 sm:w-9">
-                  <div class="w-6">
+               <div class="flex flex-row justify-content-evenly align-items-center w-12 sm:w-8">
+                  <div class="w-4">
                      <span class="p-fluid">
-                        <p-autoComplete [(ngModel)]="file.createFileDto.tags" [suggestions]="tagSuggestions" (completeMethod)="onTagSuggestionComplete($event)" [multiple]="true" (onKeyUp)="onTagKeyUp($event, file)" field="name" />
+                        <p-floatLabel>
+                           <p-autoComplete [(ngModel)]="file.createFileDto.tags" [suggestions]="tagSuggestions"
+                              [multiple]="true" [dropdown]="true" [showEmptyMessage]="false"
+                              (completeMethod)="onTagSuggestionComplete($event)" (onKeyUp)="onTagKeyUp($event, file)" [placeholder]="'Tags'"
+                              field="name" />
+                        </p-floatLabel>
                      </span>
                   </div>
-                  <div class="w-3 text-center white-space-nowrap">{{ formatSize(file.browserFile.size) }}</div>
-                  <div class="w-3 flex justify-content-center">
+                  <div class="w-4 text-center white-space-nowrap">{{ file.browserFile.size | fileSize }}</div>
+                  <div class="w-4 flex justify-content-center">
                      <div *ngIf="file.status === 'uploading'">
                         <div class="relative w-3rem">
                            <round-progress [current]="file.progress" [max]="100" [stroke]="8" [radius]="24"

@@ -4,16 +4,24 @@
   overflow-y: hide;
   position: relative;
 
+  .text-ellipsis {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .dashboard-content {
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow-y: hidden;
     height: 100vh;
   }
 
   .dashboard-button {
     max-height: 100vh;
     position: absolute;
-    bottom: 1rem;
-    right: 1rem;
+    bottom: 3rem;
+    right: 4rem;
   }
 
   .file-dialog {
@@ -24,12 +32,6 @@
       width: 95vw;
       max-height: 10vh;
       color: white;
-
-      h3 {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
     }
 
     .file-dialog-content {
@@ -53,6 +55,11 @@
       object-fit: contain;
     }
 
+    iframe {
+      height: 90vh;
+      width: 95vw;
+    }
+
     a {
       text-decoration: none;
       i {
@@ -60,9 +67,21 @@
       }
     }
   }
+
+  .upload-button {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
 }
 
-:host ::ng-deep {
+:host ::ng-deep .dashboard {
+  .p-dataview .p-dataview-content {
+    max-height: calc(100vh - 10rem);
+    overflow-y: auto;
+  }
+
   .p-sidebar {
     padding: 0;
     max-height: 100vh;
@@ -73,7 +92,7 @@
     box-shadow: none;
   }
 
-  .p-button.p-button-text {
+  .file-dialog .p-button.p-button-text {
     color: white;
   }
 }

@@ -3,6 +3,8 @@ import {
   HttpContext,
   HttpContextToken,
   HttpEvent,
+  HttpParams,
+  HttpParamsOptions,
   HttpResponse,
 } from '@angular/common/http';
 import { TaggyAppApiConstant } from '../constants/taggyAppApi.constant';
@@ -17,6 +19,7 @@ import { ApiTokenConstant } from '../constants/apiToken.constant';
 import { GetFileDto } from '../models/dtos/file/getFileDto';
 import { PagedResults } from '../models/dtos/pagedResults';
 import { GetGroupDto } from '../models/dtos/group/getGroupDto';
+import { SieveModelDto } from '../models/dtos/sieveModelDto';
 
 @Injectable({
   providedIn: 'root',
@@ -75,15 +78,27 @@ export class TaggyAppApiService {
     });
   }
 
-  public getUserFiles(): Observable<HttpResponse<PagedResults<GetFileDto>>> {
+  public getUserFiles(
+    query: SieveModelDto
+  ): Observable<HttpResponse<PagedResults<GetFileDto>>> {
+    let params = new HttpParams();
+
+    Object.entries(query).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        params = params.set(key, value.toString());
+      }
+    });
+
     return this.http.get<PagedResults<GetFileDto>>(TaggyAppApiConstant.FILE, {
       observe: 'response',
+      params: params
     });
   }
 
   public getUserGroups(): Observable<HttpResponse<PagedResults<GetGroupDto>>> {
     return this.http.get<PagedResults<GetGroupDto>>(TaggyAppApiConstant.GROUP, {
       observe: 'response',
+      params: new HttpParams(),
     });
   }
 

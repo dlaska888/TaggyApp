@@ -203,7 +203,7 @@ public class FileService(
 
             CreatorId = x.CreatorId,
             GroupId = x.GroupId,
-            Tags = x.Tags.Select(mapper.Map<GetTagDto>).ToList()
+            Tags = x.Tags.OrderBy(t => t.Name).Select(mapper.Map<GetTagDto>).ToList()
         });
     }
 

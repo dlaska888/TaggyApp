@@ -30,6 +30,7 @@ public class GroupService(
         var userId = authContext.GetUserId();
 
         var groups = dbContext.Groups
+            .Include(g => g.Tags)
             .Include(g => g.GroupUsers)
             .ThenInclude(ug => ug.User)
             .Where(x => x.GroupUsers.Any(u => u.UserId == userId))

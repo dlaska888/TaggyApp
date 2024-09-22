@@ -7,7 +7,7 @@ namespace TaggyAppBackend.Api.Models.Entities.Master;
 
 public class File : Entity
 {
-    [Sieve(CanFilter = true, CanSort = true)]
+    [Sieve(CanFilter = true, CanSort = true, Name = "name")]
     [MaxLength(255)]
     public string UntrustedName { get; set; } = null!;
 
