@@ -12,15 +12,14 @@
                   [outlined]="true" severity="success" [disabled]="!files || files.length === 0" />
                <p-button (onClick)="clearEvent(clearCallback)" icon="pi pi-times" [rounded]="true" [outlined]="true"
                   severity="danger" [disabled]="!files || files.length === 0" />
-               <p-dropdown *ngIf="pagedGroups" [options]="pagedGroups.items" [(ngModel)]="selectedGroup"
-                  optionLabel="name" placeholder="Select Group" />
+               <group-select [(group)]="selectedGroup" />
             </div>
             <div class="flex flex-column justify-content-center align-items-end gap-2">
                <p-progressBar [value]="totalSizePercent" [showValue]="false"
                   styleClass="md:w-20rem h-1rem w-full md:ml-auto"
                   [ngClass]="{ 'exceeded-progress-bar': totalSizePercent > 100 }">
                </p-progressBar>
-               <span class="white-space-nowrap">{{ formatSize(totalSize) }} / 10GB</span>
+               <span class="white-space-nowrap">{{ totalSize | fileSize }} / 10GB</span>
             </div>
          </div>
       </ng-template>
@@ -37,14 +36,7 @@
                </div>
                <div class="flex flex-row justify-content-evenly align-items-center w-12 sm:w-8">
                   <div class="w-4">
-                     <span class="p-fluid">
-                        <p-floatLabel>
-                           <p-autoComplete [(ngModel)]="file.createFileDto.tags" [suggestions]="tagSuggestions"
-                              [multiple]="true" [dropdown]="true" [showEmptyMessage]="false"
-                              (completeMethod)="onTagSuggestionComplete($event)" (onKeyUp)="onTagKeyUp($event, file)" [placeholder]="'Tags'"
-                              field="name" />
-                        </p-floatLabel>
-                     </span>
+                     <tag-autocomplete [group]="selectedGroup" [(tags)]="file.createFileDto.tags" />
                   </div>
                   <div class="w-4 text-center white-space-nowrap">{{ file.browserFile.size | fileSize }}</div>
                   <div class="w-4 flex justify-content-center">
@@ -83,7 +75,7 @@
                   <p-badge *ngIf="file.status === 'cancelled'" [value]="file.status" severity="warning" />
                </div>
                <div class="flex flex-row justify-content-evenly align-items-center w-12 sm:w-6">
-                  <div class="w-6 text-center white-space-nowrap">{{ formatSize(file.browserFile.size) }}</div>
+                  <div class="w-6 text-center white-space-nowrap">{{ file.browserFile.size | fileSize }}</div>
                   <div class="w-6 flex justify-content-center">
                      <div *ngIf="file.status === 'uploading'">
                         <div class="relative w-3rem">

@@ -169,7 +169,6 @@ public class BlobRepo : IBlobRepo
             await target.SendAsync(new Block(blockId, buffer, read));
         }
 
-        //add invalid value to hash
         md5.TransformFinalBlock([], 0, 0);
 
         target.Complete();

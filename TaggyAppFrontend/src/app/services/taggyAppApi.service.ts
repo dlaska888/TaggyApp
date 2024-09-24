@@ -81,24 +81,16 @@ export class TaggyAppApiService {
   public getUserFiles(
     query: SieveModelDto
   ): Observable<HttpResponse<PagedResults<GetFileDto>>> {
-    let params = new HttpParams();
-
-    Object.entries(query).forEach(([key, value]) => {
-      if (value !== null && value !== undefined) {
-        params = params.set(key, value.toString());
-      }
-    });
-
     return this.http.get<PagedResults<GetFileDto>>(TaggyAppApiConstant.FILE, {
       observe: 'response',
-      params: params
+      params: this.getQueryParams(query),
     });
   }
 
-  public getUserGroups(): Observable<HttpResponse<PagedResults<GetGroupDto>>> {
+  public getUserGroups(query : SieveModelDto): Observable<HttpResponse<PagedResults<GetGroupDto>>> {
     return this.http.get<PagedResults<GetGroupDto>>(TaggyAppApiConstant.GROUP, {
       observe: 'response',
-      params: new HttpParams(),
+      params: this.getQueryParams(query),
     });
   }
 
@@ -114,5 +106,17 @@ export class TaggyAppApiService {
         observe: 'events',
       }
     );
+  }
+
+  private getQueryParams(query: SieveModelDto): HttpParams {
+    let params = new HttpParams();
+
+    Object.entries(query).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        params = params.set(key, value.toString());
+      }
+    });
+
+    return params;
   }
 }

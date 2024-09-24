@@ -21,7 +21,7 @@ public class SieveCustomFilterMethods : ISieveCustomFilterMethods
     {
         var result = source
             .Include(f => f.Tags)
-            .Where(f => f.Tags.All(t => values.Contains(t.Name)));
+            .Where(f => values.All(v => f.Tags.Any(t => t.Name == v)));
 
         return result;
     }
@@ -30,7 +30,7 @@ public class SieveCustomFilterMethods : ISieveCustomFilterMethods
     {
         var result = source
             .Include(f => f.Tags)
-            .Where(f => f.Tags.All(t => !values.Contains(t.Name)));
+            .Where(f => values.All(v => f.Tags.Any(t => t.Name == v)));
 
         return result;
     }

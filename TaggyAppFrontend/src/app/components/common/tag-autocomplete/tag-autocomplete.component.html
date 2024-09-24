@@ -1,0 +1,8 @@
+<span class="p-fluid">
+   <p-floatLabel>
+      <p-autoComplete [(ngModel)]="tags" [suggestions]="tagSuggestions"
+         [multiple]="true" [dropdown]="true" [showEmptyMessage]="false"
+         (completeMethod)="onTagSuggestionComplete($event)" (onKeyUp)="onTagKeyUp($event)"
+         [placeholder]="'Tags'" field="name" />
+   </p-floatLabel>
+</span>

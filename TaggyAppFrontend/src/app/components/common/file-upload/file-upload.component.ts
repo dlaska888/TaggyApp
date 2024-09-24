@@ -24,7 +24,6 @@ import { ToastModule } from 'primeng/toast';
 import { RoundProgressComponent } from 'angular-svg-round-progressbar';
 import { TaggyAppApiService } from '../../../services/taggyAppApi.service';
 import { environment } from '../../../../environments/environment.development';
-import { ProgressFile } from '../../../models/ui/progressFile';
 import { PagedResults } from '../../../models/dtos/pagedResults';
 import { GetGroupDto } from '../../../models/dtos/group/getGroupDto';
 import { DropdownModule } from 'primeng/dropdown';
@@ -36,6 +35,10 @@ import {
 import { CreateTagDto } from '../../../models/dtos/tag/createTagDto';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { FileSizePipe } from "../../../pipes/file-size.pipe";
+import { ProgressFile } from '../../../models/ui/ProgressFile';
+import { SieveModelDto } from '../../../models/dtos/sieveModelDto';
+import { GroupSelectComponent } from "../group-select/group-select.component";
+import { TagAutocompleteComponent } from "../tag-autocomplete/tag-autocomplete.component";
 
 @Component({
   selector: 'file-upload',
@@ -55,21 +58,20 @@ import { FileSizePipe } from "../../../pipes/file-size.pipe";
     HttpClientModule,
     CommonModule,
     RoundProgressComponent,
-    FileSizePipe
+    FileSizePipe,
+    GroupSelectComponent,
+    TagAutocompleteComponent
 ],
   providers: [MessageService],
 })
-export class FileUploadComponent implements OnInit {
+export class FileUploadComponent {
   files: ProgressFile[] = [];
   uploadedFiles: ProgressFile[] = [];
   totalSize: number = 0;
   totalSizePercent: number = 0;
   sizeLimit: number = environment.taggyappApi.fileSizeLimit;
 
-  pagedGroups!: PagedResults<GetGroupDto>;
   selectedGroup!: GetGroupDto;
-
-  tagSuggestions: CreateTagDto[] = [];
 
   @Output()
   onFilesUploaded: EventEmitter<void> = new EventEmitter<void>();
@@ -78,14 +80,6 @@ export class FileUploadComponent implements OnInit {
     private taggyAppApiService: TaggyAppApiService,
     private messageService: MessageService
   ) {}
-
-  ngOnInit() {
-    this.taggyAppApiService.getUserGroups().subscribe((response) => {
-      this.pagedGroups = response.body!;
-      this.selectedGroup = this.pagedGroups.items[0];
-      this.tagSuggestions = this.selectedGroup.tags;
-    });
-  }
 
   uploadHandler(event: FileUploadHandlerEvent) {
     for (const file of this.files) {
@@ -142,32 +136,6 @@ export class FileUploadComponent implements OnInit {
     });
     if (this.files.length === 0) {
       clear();
-    }
-  }
-
-  formatSize(bytes: number) {
-    
-  }
-
-  onTagSuggestionComplete(event: AutoCompleteCompleteEvent) {
-    this.tagSuggestions = this.selectedGroup.tags.filter((t) =>
-      t.name.toLowerCase().startsWith(event.query.toLowerCase())
-    );
-  }
-
-  onTagKeyUp(event: KeyboardEvent, file: ProgressFile) {
-    console.log(event);
-    if (event.key == ' ' || event.code == 'Space') {
-      let tokenInput = event.srcElement as any;
-      if (tokenInput.value) {
-        if (!file.createFileDto.tags) {
-          file.createFileDto.tags = [];
-        }
-        file.createFileDto.tags.push({
-          name: tokenInput.value.trim(),
-        });
-        tokenInput.value = '';
-      }
     }
   }
 

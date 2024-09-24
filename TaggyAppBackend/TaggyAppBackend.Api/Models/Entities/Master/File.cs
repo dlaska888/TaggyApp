@@ -21,6 +21,7 @@ public class File : Entity
     [MaxLength(255)]
     public string ContentType { get; set; } = null!;
 
+    [Sieve(CanFilter = true, CanSort = true)]
     public long Size { get; set; }
 
     [MaxLength(36)] public string CreatorId { get; set; } = null!;
