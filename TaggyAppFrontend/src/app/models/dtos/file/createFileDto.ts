@@ -1,7 +1,7 @@
 import { CreateTagDto } from "../tag/createTagDto";
 
-export interface CreateFileDto {
-    untrustedName: string; 
+export class CreateFileDto {
+    untrustedName!: string; 
     description?: string;
-    tags: CreateTagDto[] 
+    tags: CreateTagDto[] = [];
 }

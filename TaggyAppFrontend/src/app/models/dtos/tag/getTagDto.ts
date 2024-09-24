@@ -1,5 +1,6 @@
-import { GetDto } from "../getDto";
+import { GetDto } from '../getDto';
+import { GetDtoInterface } from '../getDtoInterface';
 
-export interface GetTagDto extends GetDto {
-    name: string;
+export class GetTagDto extends GetDto {
+  name!: string;
 }

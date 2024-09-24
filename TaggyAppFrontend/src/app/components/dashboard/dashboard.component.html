@@ -3,7 +3,7 @@
       <p-dataView #dv [value]="pagedFiles.items" [rows]="fileRows" class="flex-1">
          <ng-template pTemplate="header">
             <div class="flex">
-               <div class="flex flex-column md:flex-row w-12 lg:w-10 xl:w-8 gap-2">
+               <div class="flex flex-column md:flex-row w-12 lg:w-10 xl:w-9 gap-2">
                   <div class="w-12 md:w-4 flex">
                      <p-dropdown class="w-8" [options]="sortOptions" [showClear]="true" [checkmark]="true"
                         (onChange)="onSortChange($event)" [style]="{'width':'100%'}" placeholder="Sort"
@@ -13,12 +13,13 @@
                      </p-dropdown>
                   </div>
                   <div class="w-12 md:w-4">
-                     <group-select [(group)]="selectedGroup" />
+                     <group-select (groupChange)="onGroupChange($event)" />
                   </div>
                   <div *ngIf="selectedGroup" class="w-12 md:w-4 flex">
                      <p-multiSelect class="w-8" [options]="selectedGroup.tags" [(ngModel)]="selectedTags"
-                        [showClear]="true" (onChange)="onTagsChange()" (onClear)="onTagsChange()" [style]="{'width':'100%'}"
-                        display="chip" optionLabel="name" optionValue="name" placeholder="Tags">
+                        [showClear]="true" (onChange)="onTagsChange()" (onClear)="onTagsChange()"
+                        [style]="{'width':'100%'}" display="chip" optionLabel="name" optionValue="name"
+                        placeholder="Tags">
                      </p-multiSelect>
                      <p-dropdown class="w-4" [options]="tagOperatorOptions" [style]="{'width':'100%'}"
                         (onChange)="onTagOperatorChange($event)">
@@ -28,8 +29,8 @@
             </div>
          </ng-template>
          <ng-template pTemplate="list" let-files>
-            <div *ngFor="let file of pagedFiles.items" class="flex flex-column md:flex-row align-items-center p-2 gap-2"
-               (click)="onFileSelected(file)">
+            <div *ngFor="let file of pagedFiles.items"
+               class="p-card flex flex-column md:flex-row align-items-center p-2 gap-2" (click)="onFileSelected(file)">
                <div class="w-12 md:w-3">
                   <h5 class="card-title text-ellipsis">{{ file.name }}</h5>
                </div>
@@ -52,54 +53,9 @@
       [transitionOptions]="'200ms'">
       <ng-template pTemplate="headless">
          <file-upload (onFilesUploaded)="onFilesUploaded()"></file-upload>
-         <p-button icon="pi pi-angle-double-down" class="upload-button" [outlined]="true"
+         <p-button icon="pi pi-angle-double-down" class="upload-button bg-white" [rounded]="true" [outlined]="true"
             (onClick)="sidebarVisible = false"></p-button>
       </ng-template>
    </p-sidebar>
-   <p-dialog header="File Viewer" [(visible)]="dialogVisible" [modal]="true" [closable]="true" [dismissableMask]="true"
-      class="file-dialog">
-      <ng-template pTemplate="headless">
-         <div class="file-dialog-content">
-            <div class="file-dialog-header">
-               <p-button icon="pi pi-times" styleClass="p-0" [text]="true" [rounded]="true"
-                  (onClick)="dialogVisible = false"></p-button>
-               <p-button *ngIf="supportedFileTypes.includes(selectedFile.contentType.split('/')[0])"
-                  icon="pi pi-download" styleClass="p-0 relative" [text]="true" [rounded]="true">
-                  <a class="absolute w-2rem h-2rem" [href]="selectedFile.url"></a>
-               </p-button>
-               <h3 *ngIf="selectedFile.name" class="m-0 px-2 text-ellipsis">{{ selectedFile.name }}</h3>
-            </div>
-
-            <!-- For images -->
-            <ng-container *ngIf="selectedFile.contentType.startsWith('image/')">
-               <img [src]="selectedFile.url" [alt]="selectedFile.name">
-            </ng-container>
-
-            <!-- For videos -->
-            <ng-container *ngIf="selectedFile.contentType.startsWith('video/')">
-               <video [src]="selectedFile.url" controls>
-                  Your browser does not support the video tag.
-               </video>
-            </ng-container>
-
-            <!-- audio -->
-            <ng-container *ngIf="selectedFile.contentType.startsWith('audio/')">
-               <audio [src]="selectedFile.url" controls>
-                  Your browser does not support the audio tag.
-               </audio>
-            </ng-container>
-
-         </div>
-
-         <!-- For other types -->
-         <ng-container *ngIf="!supportedFileTypes.includes(selectedFile.contentType.split('/')[0])">
-            <div class="flex justify-content-center">
-               <a [href]="selectedFile.url" download="file" class="p-button p-4">
-                  <i class="pi pi-download"></i>
-               </a>
-            </div>
-         </ng-container>
-
-      </ng-template>
-   </p-dialog>
+   <file-view-dialog [file]="selectedFile" [(visible)]="dialogVisible" />
 </div>

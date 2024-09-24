@@ -12,11 +12,15 @@
                   [outlined]="true" severity="success" [disabled]="!files || files.length === 0" />
                <p-button (onClick)="clearEvent(clearCallback)" icon="pi pi-times" [rounded]="true" [outlined]="true"
                   severity="danger" [disabled]="!files || files.length === 0" />
-               <group-select [(group)]="selectedGroup" />
+
+            </div>
+            <div class="flex gap-2 align-items-center">
+               <group-select (groupChange)="onGroupChange($event)" />
+               <tag-autocomplete [group]="selectedGroup" [(tags)]="globalTags"/>
             </div>
             <div class="flex flex-column justify-content-center align-items-end gap-2">
                <p-progressBar [value]="totalSizePercent" [showValue]="false"
-                  styleClass="md:w-20rem h-1rem w-full md:ml-auto"
+                  styleClass="w-15rem sm:w-20rem h-1rem w-full ml-auto"
                   [ngClass]="{ 'exceeded-progress-bar': totalSizePercent > 100 }">
                </p-progressBar>
                <span class="white-space-nowrap">{{ totalSize | fileSize }} / 10GB</span>
@@ -27,14 +31,17 @@
          let-removeUploadedFileCallback="removeUploadedFileCallback">
          <div *ngIf="files.length > 0" class="flex flex-wrap justify-content-center gap-5">
             <div *ngFor="let file of files; let i = index"
-               class="file-card card flex m-0 flex-column sm:flex-row border-1 surface-border justify-content-between w-12 p-3 gap-3">
-               <div class="flex-1 flex flex-column justify-content-center min-w-0 w-12 sm:w-3">
-                  <p class="m-0 font-semibold text-ellipsis">{{
-                     file.browserFile.name }}</p>
+               class="file-card card flex m-0 flex-column md:flex-row border-1 surface-border justify-content-between w-12 p-3 gap-3">
+               <div class="flex-1 flex flex-column justify-content-center min-w-0 w-12 md:w-3">
+                  <div class="flex gap-2">
+                     <i class="pi pi-arrow-up-right-and-arrow-down-left-from-center" (click)="onFileSelected(file)"></i>
+                     <p class="m-0 font-semibold text-ellipsis">{{
+                        file.browserFile.name }}</p>
+                  </div>
                   <p-badge *ngIf="file.status === 'failed'" [value]="file.status" severity="danger" />
                   <p-badge *ngIf="file.status === 'cancelled'" [value]="file.status" severity="warning" />
                </div>
-               <div class="flex flex-row justify-content-evenly align-items-center w-12 sm:w-8">
+               <div class="flex flex-row justify-content-evenly align-items-center w-12 md:w-8">
                   <div class="w-4">
                      <tag-autocomplete [group]="selectedGroup" [(tags)]="file.createFileDto.tags" />
                   </div>
@@ -66,7 +73,7 @@
          </div>
          <h3 *ngIf="uploadedFiles.length > 0">Uploaded files</h3>
          <div *ngIf="uploadedFiles.length > 0" class="flex flex-wrap justify-content-center gap-5">
-            <div *ngFor="let file of uploadedFiles; let i = index"
+            <div *ngFor="let file of uploadedFiles; let i = index" (click)="onFileSelected(file)"
                class="file-card card flex flex-column sm:flex-row border-1 surface-border justify-content-between w-12 m-0 p-3 gap-3">
                <div class="flex-1 flex flex-column w-12 sm:w-6 justify-content-center min-w-0">
                   <p class="m-0 font-semibold text-ellipsis">{{
@@ -102,7 +109,7 @@
             </div>
          </div>
       </ng-template>
-      <ng-template pTemplate="file"> </ng-template>
+      <ng-template pTemplate="file"></ng-template>
       <ng-template pTemplate="empty">
          <div *ngIf="uploadedFiles.length === 0" class="flex align-items-center justify-content-center flex-column">
             <i class="pi pi-cloud-upload border-2 border-circle p-5 text-8xl text-400 border-400"></i>
@@ -110,4 +117,5 @@
          </div>
       </ng-template>
    </p-fileUpload>
+   <file-view-dialog [file]="selectedFile" [(visible)]="dialogVisible" />
 </div>

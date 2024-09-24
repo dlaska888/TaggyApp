@@ -11,6 +11,6 @@ export class ProgressFile {
     constructor(file : File) {
         this.browserFile = file;
         this.progress = 0;
-        this.createFileDto = {} as CreateFileDto;
+        this.createFileDto = new CreateFileDto();
     }
 }

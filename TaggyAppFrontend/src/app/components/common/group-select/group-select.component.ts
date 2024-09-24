@@ -1,5 +1,18 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { DropdownChangeEvent, DropdownLazyLoadEvent, DropdownModule } from 'primeng/dropdown';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+} from '@angular/core';
+import {
+  DropdownChangeEvent,
+  DropdownLazyLoadEvent,
+  DropdownModule,
+} from 'primeng/dropdown';
 import { TaggyAppApiService } from '../../../services/taggyAppApi.service';
 import { PagedResults } from '../../../models/dtos/pagedResults';
 import { SieveModelDto } from '../../../models/dtos/sieveModelDto';
@@ -19,9 +32,6 @@ export class GroupSelectComponent implements OnInit {
   page: number = 1;
   rows: number = 10;
 
-  @Input()
-  group!: GetGroupDto;
-
   @Output()
   groupChange = new EventEmitter<GetGroupDto>();
 
@@ -32,8 +42,7 @@ export class GroupSelectComponent implements OnInit {
   }
 
   onChange(event: DropdownChangeEvent): void {
-    this.group = event.value;
-    this.groupChange.emit(this.group);
+    this.groupChange.emit(event.value);
   }
 
   onLazyLoad(event: DropdownLazyLoadEvent): void {
@@ -41,15 +50,16 @@ export class GroupSelectComponent implements OnInit {
     this.getGroups(new SieveModelDto(this.page, this.rows));
   }
 
+  refreshGroups(): void {
+    this.getGroups();
+  }
+
   private getGroups(
     query: SieveModelDto = new SieveModelDto(1, this.rows)
   ): void {
     this.taggyAppApiService.getUserGroups(query).subscribe((response) => {
       this.pagedGroups = response.body!;
-      if(!this.group){
-        this.group = this.pagedGroups.items[0];
-        this.groupChange.emit(this.group);
-      }
+      this.groupChange.emit(this.pagedGroups.items[0]);
     });
   }
 }

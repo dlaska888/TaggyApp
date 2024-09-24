@@ -1,9 +1,10 @@
 import { GroupRole } from '../../enums/GroupRole';
 import { GetDto } from '../getDto';
+import { GetDtoInterface } from '../getDtoInterface';
 
-export interface GetGroupUserDto extends GetDto {
-  userId: string;
-  name: string;
-  email: string;
-  role: GroupRole;
+export class GetGroupUserDto extends GetDto {
+  userId!: string;
+  name!: string;
+  email!: string;
+  role!: GroupRole;
 }

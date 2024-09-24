@@ -87,10 +87,18 @@ export class TaggyAppApiService {
     });
   }
 
-  public getUserGroups(query : SieveModelDto): Observable<HttpResponse<PagedResults<GetGroupDto>>> {
+  public getUserGroups(
+    query: SieveModelDto
+  ): Observable<HttpResponse<PagedResults<GetGroupDto>>> {
     return this.http.get<PagedResults<GetGroupDto>>(TaggyAppApiConstant.GROUP, {
       observe: 'response',
       params: this.getQueryParams(query),
+    });
+  }
+
+  public getGroupById(id: string): Observable<HttpResponse<GetGroupDto>> {
+    return this.http.get<GetGroupDto>(TaggyAppApiConstant.GROUP + `/${id}`, {
+      observe: 'response',
     });
   }
 

@@ -1,4 +1,6 @@
-export interface GetDto {
-  id: string;
-  createdAt: Date;
+import { GetDtoInterface } from "./getDtoInterface";
+
+export class GetDto implements GetDtoInterface {
+  id!: string;
+  createdAt!: Date;
 }

@@ -1,11 +1,5 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  OnInit,
-  Output,
-} from '@angular/core';
-import { MessageService, PrimeNGConfig } from 'primeng/api';
+import { Component, EventEmitter, Output } from '@angular/core';
+import { MessageService } from 'primeng/api';
 import {
   FileSelectEvent,
   FileUploadHandlerEvent,
@@ -24,21 +18,18 @@ import { ToastModule } from 'primeng/toast';
 import { RoundProgressComponent } from 'angular-svg-round-progressbar';
 import { TaggyAppApiService } from '../../../services/taggyAppApi.service';
 import { environment } from '../../../../environments/environment.development';
-import { PagedResults } from '../../../models/dtos/pagedResults';
 import { GetGroupDto } from '../../../models/dtos/group/getGroupDto';
 import { DropdownModule } from 'primeng/dropdown';
 import { FormsModule } from '@angular/forms';
-import {
-  AutoCompleteCompleteEvent,
-  AutoCompleteModule,
-} from 'primeng/autocomplete';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 import { CreateTagDto } from '../../../models/dtos/tag/createTagDto';
 import { FloatLabelModule } from 'primeng/floatlabel';
-import { FileSizePipe } from "../../../pipes/file-size.pipe";
-import { ProgressFile } from '../../../models/ui/ProgressFile';
-import { SieveModelDto } from '../../../models/dtos/sieveModelDto';
-import { GroupSelectComponent } from "../group-select/group-select.component";
-import { TagAutocompleteComponent } from "../tag-autocomplete/tag-autocomplete.component";
+import { FileSizePipe } from '../../../pipes/file-size.pipe';
+import { GroupSelectComponent } from '../group-select/group-select.component';
+import { TagAutocompleteComponent } from '../tag-autocomplete/tag-autocomplete.component';
+import { FileViewDialogComponent } from '../file-view-dialog/file-view-dialog.component';
+import { FileViewModel } from '../../../models/ui/fileViewModel';
+import { ProgressFile } from '../../../models/ui/progressFileModel';
 
 @Component({
   selector: 'file-upload',
@@ -60,8 +51,9 @@ import { TagAutocompleteComponent } from "../tag-autocomplete/tag-autocomplete.c
     RoundProgressComponent,
     FileSizePipe,
     GroupSelectComponent,
-    TagAutocompleteComponent
-],
+    TagAutocompleteComponent,
+    FileViewDialogComponent,
+  ],
   providers: [MessageService],
 })
 export class FileUploadComponent {
@@ -72,6 +64,10 @@ export class FileUploadComponent {
   sizeLimit: number = environment.taggyappApi.fileSizeLimit;
 
   selectedGroup!: GetGroupDto;
+  selectedFile!: FileViewModel;
+  dialogVisible: boolean = false;
+
+  globalTags: CreateTagDto[] = [];
 
   @Output()
   onFilesUploaded: EventEmitter<void> = new EventEmitter<void>();
@@ -117,6 +113,24 @@ export class FileUploadComponent {
     this.uploadFile(file);
   }
 
+  onGlobalTagsChange(event: CreateTagDto[]) {
+    this.globalTags = event;
+  }
+
+  onFileSelected(file: ProgressFile) {
+    this.selectedFile = {
+      name: file.browserFile.name,
+      url: URL.createObjectURL(file.browserFile),
+      contentType: file.browserFile.type,
+      size: file.browserFile.size || 0,
+    };
+    this.dialogVisible = true;
+  }
+
+  onGroupChange(event: GetGroupDto) {
+    this.getGroup(event.id);
+  }
+
   onImageError(event: any) {
     event.target.src =
       'https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png';
@@ -142,6 +156,7 @@ export class FileUploadComponent {
   private uploadFile(file: ProgressFile): void {
     const formData = new FormData();
     file.createFileDto.untrustedName = file.browserFile.name;
+    file.createFileDto.tags = file.createFileDto.tags.concat(this.globalTags);
     formData.append('dto', JSON.stringify(file.createFileDto));
     formData.append('file', file.browserFile);
 
@@ -187,5 +202,13 @@ export class FileUploadComponent {
     );
     this.totalSize -= file.browserFile.size || 0;
     this.totalSizePercent = (this.totalSize / this.sizeLimit) * 100;
+  }
+
+  private getGroup(id: string): void {
+    this.taggyAppApiService
+      .getGroupById(id)
+      .subscribe((response) => {
+        this.selectedGroup = response.body!;
+      });
   }
 }

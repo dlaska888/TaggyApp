@@ -24,50 +24,6 @@
     right: 4rem;
   }
 
-  .file-dialog {
-    .file-dialog-header {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 95vw;
-      max-height: 10vh;
-      color: white;
-    }
-
-    .file-dialog-content {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-
-    img {
-      height: auto;
-      max-height: 85vh;
-      width: 95vw;
-      object-fit: contain;
-    }
-
-    video {
-      max-height: 90vh;
-      width: 95vw;
-      background: black;
-      object-fit: contain;
-    }
-
-    iframe {
-      height: 90vh;
-      width: 95vw;
-    }
-
-    a {
-      text-decoration: none;
-      i {
-        font-size: 3rem;
-      }
-    }
-  }
-
   .upload-button {
     position: absolute;
     bottom: 1rem;
@@ -85,14 +41,5 @@
   .p-sidebar {
     padding: 0;
     max-height: 100vh;
-  }
-
-  .p-dialog {
-    max-height: 100vh !important;
-    box-shadow: none;
-  }
-
-  .file-dialog .p-button.p-button-text {
-    color: white;
   }
 }

@@ -1,3 +1,3 @@
-export interface CreateTagDto {
-    name: string;
+export class CreateTagDto {
+    name!: string;
 }

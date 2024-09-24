@@ -1,7 +1,8 @@
 import { GetDto } from "../getDto";
+import { GetDtoInterface } from "../getDtoInterface";
 
-export interface GetAccountDto extends GetDto {
-  userName: string;
-  email: string;
-  emailConfirmed: boolean;
+export class GetAccountDto extends GetDto {
+  userName!: string;
+  email!: string;
+  emailConfirmed!: boolean;
 }

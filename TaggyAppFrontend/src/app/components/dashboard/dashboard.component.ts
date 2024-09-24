@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { GetFileDto } from '../../models/dtos/file/getFileDto';
 import { TaggyAppApiService } from '../../services/taggyAppApi.service';
 import { CommonModule } from '@angular/common';
@@ -8,7 +8,6 @@ import { FileUploadComponent } from '../common/file-upload/file-upload.component
 import { SidebarModule } from 'primeng/sidebar';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { DialogModule } from 'primeng/dialog';
 import { DomSanitizer } from '@angular/platform-browser';
 import { DataViewModule } from 'primeng/dataview';
 import { BadgeModule } from 'primeng/badge';
@@ -21,6 +20,7 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { GroupSelectComponent } from '../common/group-select/group-select.component';
 import { TagAutocompleteComponent } from '../common/tag-autocomplete/tag-autocomplete.component';
 import { FloatLabelModule } from 'primeng/floatlabel';
+import { FileViewDialogComponent } from '../common/file-view-dialog/file-view-dialog.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -30,7 +30,6 @@ import { FloatLabelModule } from 'primeng/floatlabel';
     SidebarModule,
     ButtonModule,
     CardModule,
-    DialogModule,
     DataViewModule,
     BadgeModule,
     DropdownModule,
@@ -41,6 +40,7 @@ import { FloatLabelModule } from 'primeng/floatlabel';
     FileSizePipe,
     GroupSelectComponent,
     TagAutocompleteComponent,
+    FileViewDialogComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
@@ -55,8 +55,6 @@ export class DashboardComponent implements OnInit {
   sidebarVisible: boolean = false;
   dialogVisible: boolean = false;
 
-  supportedFileTypes: string[] = ['image', 'video', 'audio'];
-
   selectedSort!: string;
   sortOptions!: SelectItem[];
   selectedSortOperator!: string;
@@ -70,12 +68,17 @@ export class DashboardComponent implements OnInit {
   tagOperatorOptions!: SelectItem[];
   get tagFilter(): string {
     if (this.selectedTags?.length > 0)
-      return `WithTags${this.selectedTagOperator}${this.selectedTags.join('|')}`;
+      return `WithTags${this.selectedTagOperator}${this.selectedTags.join(
+        '|'
+      )}`;
     return '';
   }
 
   filePage: number = 1;
   fileRows: number = 10;
+
+  @ViewChild(GroupSelectComponent)
+  groupSelectComponent!: GroupSelectComponent;
 
   constructor(
     private taggyAppApiService: TaggyAppApiService,
@@ -104,6 +107,7 @@ export class DashboardComponent implements OnInit {
 
   onFilesUploaded(): void {
     this.getFiles();
+    if (this.groupSelectComponent) this.groupSelectComponent.refreshGroups();
   }
 
   onFileSelected(file: GetFileDto): void {
@@ -127,6 +131,11 @@ export class DashboardComponent implements OnInit {
     this.getFiles();
   }
 
+  onGroupChange(group: GetGroupDto) {
+    this.getGroup(group.id);
+    this.getFiles();
+  }
+
   onTagsChange() {
     this.getFiles();
   }
@@ -135,7 +144,6 @@ export class DashboardComponent implements OnInit {
     this.selectedTagOperator = event.value;
     this.getFiles();
   }
-
 
   private getFiles(): void {
     const query = new SieveModelDto(
@@ -147,5 +155,13 @@ export class DashboardComponent implements OnInit {
     this.taggyAppApiService.getUserFiles(query).subscribe((response) => {
       this.pagedFiles = response.body!;
     });
+  }
+
+  private getGroup(id: string): void {
+    this.taggyAppApiService
+      .getGroupById(id)
+      .subscribe((response) => {
+        this.selectedGroup = response.body!;
+      });
   }
 }

@@ -84,6 +84,7 @@ public class GroupService(
         await groupUserService.VerifyGroupAccess(id, role);
 
         var group = await dbContext.Groups
+            .Include(g => g.Tags)
             .Include(g => g.GroupUsers)
             .ThenInclude(ug => ug.User)
             .FirstOrDefaultAsync(x => x.Id == id);
