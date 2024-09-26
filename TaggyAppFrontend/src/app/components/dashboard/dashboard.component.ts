@@ -4,23 +4,24 @@ import { TaggyAppApiService } from '../../services/taggyAppApi.service';
 import { CommonModule } from '@angular/common';
 import { PagedResults } from '../../models/dtos/pagedResults';
 import { GetGroupDto } from '../../models/dtos/group/getGroupDto';
-import { FileUploadComponent } from '../common/file-upload/file-upload.component';
 import { SidebarModule } from 'primeng/sidebar';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DomSanitizer } from '@angular/platform-browser';
-import { DataViewModule } from 'primeng/dataview';
+import { DataViewLayoutOptions, DataViewModule } from 'primeng/dataview';
 import { BadgeModule } from 'primeng/badge';
 import { SieveModelDto } from '../../models/dtos/sieveModelDto';
 import { FileSizePipe } from '../../pipes/file-size.pipe';
-import { SelectItem } from 'primeng/api';
+import { MessageService, SelectItem } from 'primeng/api';
 import { DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { MultiSelectModule } from 'primeng/multiselect';
-import { GroupSelectComponent } from '../common/group-select/group-select.component';
 import { TagAutocompleteComponent } from '../common/tag-autocomplete/tag-autocomplete.component';
 import { FloatLabelModule } from 'primeng/floatlabel';
-import { FileViewDialogComponent } from '../common/file-view-dialog/file-view-dialog.component';
+import { FileViewDialogComponent } from '../common/file/file-view-dialog/file-view-dialog.component';
+import { GroupMultiSelect } from '../common/group/group-multiselect/group-multiselect.component';
+import { FileUploadComponent } from '../common/file/file-upload/file-upload.component';
+import { GroupSelectComponent } from '../common/group/group-select/group-select.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -41,16 +42,19 @@ import { FileViewDialogComponent } from '../common/file-view-dialog/file-view-di
     GroupSelectComponent,
     TagAutocompleteComponent,
     FileViewDialogComponent,
+    GroupMultiSelect,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent implements OnInit {
+  layout: 'list' | 'grid' = 'list';
+
   pagedFiles!: PagedResults<GetFileDto>;
   pagedGroups!: PagedResults<GetGroupDto>;
 
   selectedFile!: GetFileDto;
-  selectedGroup!: GetGroupDto;
+  selectedGroups!: GetGroupDto[];
 
   sidebarVisible: boolean = false;
   dialogVisible: boolean = false;
@@ -81,8 +85,8 @@ export class DashboardComponent implements OnInit {
   groupSelectComponent!: GroupSelectComponent;
 
   constructor(
-    private taggyAppApiService: TaggyAppApiService,
-    public sanitizer: DomSanitizer
+    public sanitizer: DomSanitizer,
+    private taggyAppApiService: TaggyAppApiService
   ) {}
 
   ngOnInit(): void {
@@ -111,8 +115,13 @@ export class DashboardComponent implements OnInit {
   }
 
   onFileSelected(file: GetFileDto): void {
+    console
     this.selectedFile = file;
     this.dialogVisible = true;
+  }
+
+  onFileDeleted(): void {
+    this.getFiles();
   }
 
   onPageChange(event: PaginatorState) {
@@ -122,17 +131,17 @@ export class DashboardComponent implements OnInit {
   }
 
   onSortChange(event: DropdownChangeEvent) {
-    this.selectedSort = event.value;
+    this.selectedSort = event.value ?? 'createdAt';
     this.getFiles();
   }
 
   onSortOperatorChange(event: DropdownChangeEvent) {
-    this.selectedSortOperator = event.value;
+    this.selectedSortOperator = event.value ?? '-';
     this.getFiles();
   }
 
-  onGroupChange(group: GetGroupDto) {
-    this.getGroup(group.id);
+  onGroupsChange(groups: GetGroupDto[]) {
+    this.selectedGroups = groups;
     this.getFiles();
   }
 
@@ -155,13 +164,5 @@ export class DashboardComponent implements OnInit {
     this.taggyAppApiService.getUserFiles(query).subscribe((response) => {
       this.pagedFiles = response.body!;
     });
-  }
-
-  private getGroup(id: string): void {
-    this.taggyAppApiService
-      .getGroupById(id)
-      .subscribe((response) => {
-        this.selectedGroup = response.body!;
-      });
   }
 }

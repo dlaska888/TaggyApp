@@ -58,9 +58,7 @@ public class FileService(
     public async Task<GetFileDto> GetById(string groupId, string fileId)
     {
         var file = await FindFile(groupId, fileId);
-        var mapped = mapper.Map<GetFileDto>(file);
-        mapped.Url = await blobRepo.GetBlobDownloadPath(file.TrustedName, groupId);
-        return mapped;
+        return await MapFileToDto(file);
     }
 
     public async Task<GetFileDto> Create(string groupId, CreateFileDto dto, Stream stream)
@@ -88,7 +86,7 @@ public class FileService(
         dbContext.Files.Add(file);
         var fileWithTags = await SaveFileWithTags(file, dto.Tags);
 
-        return mapper.Map<GetFileDto>(fileWithTags);
+        return await MapFileToDto(fileWithTags);
     }
 
     public async Task<GetFileDto> Update(string groupId, string fileId, UpdateFileDto dto)
@@ -102,7 +100,7 @@ public class FileService(
 
         var result = await SaveFileWithTags(file, dto.Tags);
 
-        return mapper.Map<GetFileDto>(result);
+        return await MapFileToDto(result);
     }
 
     public async Task<bool> Delete(string groupId, string fileId)
@@ -190,21 +188,15 @@ public class FileService(
 
     private async Task<PagedResults<GetFileDto>> GetPagedFiles(IQueryable<File> files, SieveModel query)
     {
-        return await pagingHelper.ToPagedResults<File, GetFileDto>(files, query, async x => new GetFileDto
-        {
-            Id = x.Id,
-            CreatedAt = x.CreatedAt,
+        return await pagingHelper.ToPagedResults<File, GetFileDto>(files, query, async x => await MapFileToDto(x));
+    }
 
-            Name = x.UntrustedName,
-            Description = x.Description,
-            Url = await blobRepo.GetBlobDownloadPath(x.TrustedName, x.GroupId, x.UntrustedName),
-            ContentType = x.ContentType,
-            Size = x.Size,
-
-            CreatorId = x.CreatorId,
-            GroupId = x.GroupId,
-            Tags = x.Tags.OrderBy(t => t.Name).Select(mapper.Map<GetTagDto>).ToList()
-        });
+    private async Task<GetFileDto> MapFileToDto(File file)
+    {
+        var mapped = mapper.Map<GetFileDto>(file);
+        mapped.Url = await blobRepo.GetBlobDownloadPath(file.TrustedName, file.GroupId);
+        mapped.Tags = file.Tags.OrderBy(t => t.Name).Select(mapper.Map<GetTagDto>).ToList();
+        return mapped;
     }
 
     #endregion

@@ -1,35 +1,27 @@
-import { Component, EventEmitter, Output } from '@angular/core';
-import { MessageService } from 'primeng/api';
-import {
-  FileSelectEvent,
-  FileUploadHandlerEvent,
-  FileUploadModule,
-} from 'primeng/fileupload';
-import { ButtonModule } from 'primeng/button';
 import { CommonModule } from '@angular/common';
+import { HttpClientModule, HttpEvent, HttpEventType } from '@angular/common/http';
+import { Component, Output, EventEmitter } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 import { BadgeModule } from 'primeng/badge';
-import {
-  HttpClientModule,
-  HttpEvent,
-  HttpEventType,
-} from '@angular/common/http';
+import { ButtonModule } from 'primeng/button';
+import { DropdownModule } from 'primeng/dropdown';
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { FileUploadModule, FileSelectEvent, FileUploadHandlerEvent } from 'primeng/fileupload';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ToastModule } from 'primeng/toast';
 import { RoundProgressComponent } from 'angular-svg-round-progressbar';
-import { TaggyAppApiService } from '../../../services/taggyAppApi.service';
-import { environment } from '../../../../environments/environment.development';
-import { GetGroupDto } from '../../../models/dtos/group/getGroupDto';
-import { DropdownModule } from 'primeng/dropdown';
-import { FormsModule } from '@angular/forms';
-import { AutoCompleteModule } from 'primeng/autocomplete';
-import { CreateTagDto } from '../../../models/dtos/tag/createTagDto';
-import { FloatLabelModule } from 'primeng/floatlabel';
-import { FileSizePipe } from '../../../pipes/file-size.pipe';
-import { GroupSelectComponent } from '../group-select/group-select.component';
-import { TagAutocompleteComponent } from '../tag-autocomplete/tag-autocomplete.component';
+import { environment } from '../../../../../environments/environment.development';
+import { GetGroupDto } from '../../../../models/dtos/group/getGroupDto';
+import { CreateTagDto } from '../../../../models/dtos/tag/createTagDto';
+import { FileViewModel } from '../../../../models/ui/fileViewModel';
+import { ProgressFile } from '../../../../models/ui/progressFileModel';
+import { FileSizePipe } from '../../../../pipes/file-size.pipe';
+import { TaggyAppApiService } from '../../../../services/taggyAppApi.service';
+import { GroupSelectComponent } from '../../group/group-select/group-select.component';
+import { TagAutocompleteComponent } from '../../tag-autocomplete/tag-autocomplete.component';
 import { FileViewDialogComponent } from '../file-view-dialog/file-view-dialog.component';
-import { FileViewModel } from '../../../models/ui/fileViewModel';
-import { ProgressFile } from '../../../models/ui/progressFileModel';
 
 @Component({
   selector: 'file-upload',
@@ -64,7 +56,6 @@ export class FileUploadComponent {
   sizeLimit: number = environment.taggyappApi.fileSizeLimit;
 
   selectedGroup!: GetGroupDto;
-  selectedFile!: FileViewModel;
   dialogVisible: boolean = false;
 
   globalTags: CreateTagDto[] = [];
@@ -117,16 +108,6 @@ export class FileUploadComponent {
     this.globalTags = event;
   }
 
-  onFileSelected(file: ProgressFile) {
-    this.selectedFile = {
-      name: file.browserFile.name,
-      url: URL.createObjectURL(file.browserFile),
-      contentType: file.browserFile.type,
-      size: file.browserFile.size || 0,
-    };
-    this.dialogVisible = true;
-  }
-
   onGroupChange(event: GetGroupDto) {
     this.getGroup(event.id);
   }
@@ -162,7 +143,7 @@ export class FileUploadComponent {
 
     file.status = 'uploading';
     const request = this.taggyAppApiService
-      .uploadFile(this.selectedGroup.id, formData)
+      .createFile(this.selectedGroup.id, formData)
       .subscribe(
         (event: HttpEvent<any>) => {
           if (event.type === HttpEventType.UploadProgress) {
@@ -205,10 +186,8 @@ export class FileUploadComponent {
   }
 
   private getGroup(id: string): void {
-    this.taggyAppApiService
-      .getGroupById(id)
-      .subscribe((response) => {
-        this.selectedGroup = response.body!;
-      });
+    this.taggyAppApiService.getGroupById(id).subscribe((response) => {
+      this.selectedGroup = response.body!;
+    });
   }
 }

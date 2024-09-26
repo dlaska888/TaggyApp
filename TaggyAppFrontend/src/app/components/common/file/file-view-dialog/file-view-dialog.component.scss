@@ -41,12 +41,25 @@
   }
 }
 
-:host ::ng-deep .file-dialog {
-  .p-dialog {
-    max-height: 100vh !important;
-    box-shadow: none;
+.info-close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+:host ::ng-deep {
+  .file-dialog {
+    .p-dialog {
+      max-height: 100vh !important;
+      box-shadow: none;
+    }
+    .p-button.p-button-text {
+      color: white;
+    }
   }
-  .p-button.p-button-text {
-    color: white;
+  .p-sidebar {
+    padding: 0;
+    max-height: 100vh;
+    overflow-y: auto;
   }
 }

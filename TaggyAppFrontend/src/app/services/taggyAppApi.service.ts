@@ -20,6 +20,8 @@ import { GetFileDto } from '../models/dtos/file/getFileDto';
 import { PagedResults } from '../models/dtos/pagedResults';
 import { GetGroupDto } from '../models/dtos/group/getGroupDto';
 import { SieveModelDto } from '../models/dtos/sieveModelDto';
+import { GetTagDto } from '../models/dtos/tag/getTagDto';
+import { UpdateFileDto } from '../models/dtos/file/updateFileDto';
 
 @Injectable({
   providedIn: 'root',
@@ -87,6 +89,15 @@ export class TaggyAppApiService {
     });
   }
 
+  public getUserTags(
+    query: SieveModelDto
+  ): Observable<HttpResponse<PagedResults<GetTagDto>>> {
+    return this.http.get<PagedResults<GetTagDto>>(TaggyAppApiConstant.TAG, {
+      observe: 'response',
+      params: this.getQueryParams(query),
+    });
+  }
+
   public getUserGroups(
     query: SieveModelDto
   ): Observable<HttpResponse<PagedResults<GetGroupDto>>> {
@@ -102,7 +113,7 @@ export class TaggyAppApiService {
     });
   }
 
-  public uploadFile(
+  public createFile(
     groupId: string,
     formData: FormData
   ): Observable<HttpEvent<any>> {
@@ -112,6 +123,32 @@ export class TaggyAppApiService {
       {
         reportProgress: true,
         observe: 'events',
+      }
+    );
+  }
+
+  public updateFile(
+    groupId: string,
+    fileId: string,
+    dto: UpdateFileDto
+  ): Observable<HttpResponse<GetFileDto>> {
+    return this.http.put<GetFileDto>(
+      `${TaggyAppApiConstant.GROUP}/${groupId}/file/${fileId}`,
+      dto,
+      {
+        observe: 'response',
+      }
+    );
+  }
+
+  public deleteFile(
+    groupId: string,
+    fileId: string
+  ): Observable<HttpResponse<any>> {
+    return this.http.delete(
+      `${TaggyAppApiConstant.GROUP}/${groupId}/file/${fileId}`,
+      {
+        observe: 'response',
       }
     );
   }

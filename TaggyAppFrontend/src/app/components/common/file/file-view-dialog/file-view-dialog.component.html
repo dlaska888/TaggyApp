@@ -1,0 +1,55 @@
+<p-dialog header="File Viewer" [(visible)]="visible" [modal]="true" [closable]="true" [dismissableMask]="true"
+   (onHide)="visibleChange.emit(false)" class="file-dialog">
+   <ng-template pTemplate="headless">
+      <div class="file-dialog-content">
+         <div class="file-dialog-header">
+            <p-button icon="pi pi-times" styleClass="p-0" [text]="true" [rounded]="true"
+               (onClick)="visible = false"></p-button>
+            <h3 *ngIf="file.name" class="m-0 px-2 text-ellipsis">{{ file.name }}</h3>
+            <div class="card flex justify-content-center">
+               <p-menu #menu [model]="menuItems" [popup]="true" appendTo="body" />
+               <p-button icon="pi pi-ellipsis-v" styleClass="p-0" [text]="true" [rounded]="true"
+                  (onClick)="menu.toggle($event)" />
+            </div>
+         </div>
+
+         <!-- For images -->
+         <ng-container *ngIf="file.contentType.startsWith('image/')">
+            <img [src]="file.url" [alt]="file.name">
+         </ng-container>
+
+         <!-- For videos -->
+         <ng-container *ngIf="file.contentType.startsWith('video/')">
+            <video [src]="file.url" controls>
+               Your browser does not support the video tag.
+            </video>
+         </ng-container>
+
+         <!-- audio -->
+         <ng-container *ngIf="file.contentType.startsWith('audio/')">
+            <audio [src]="file.url" controls>
+               Your browser does not support the audio tag.
+            </audio>
+         </ng-container>
+
+      </div>
+
+      <!-- For other types -->
+      <ng-container *ngIf="!supportedFileTypes.includes(file.contentType.split('/')[0])">
+         <div class="flex justify-content-center">
+            <a [href]="file.url" download="file" class="p-button p-4">
+               <i class="pi pi-download"></i>
+            </a>
+         </div>
+      </ng-container>
+
+   </ng-template>
+</p-dialog>
+<p-sidebar class="relative" styleClass="w-full max-w-30rem" [(visible)]="sidebarVisible" [position]="'right'"
+   [transitionOptions]="'200ms'">
+   <ng-template pTemplate="headless">
+      <file-info [(file)]="file" (fileDelete)="onFileDeleted()" />
+      <p-button icon="pi pi-times" class="info-close-button" [text]="true" [rounded]="true"
+         (onClick)="sidebarVisible = false"></p-button>
+   </ng-template>
+</p-sidebar>

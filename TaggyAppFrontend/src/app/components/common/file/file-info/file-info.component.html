@@ -1,0 +1,58 @@
+<form *ngIf="fileEditForm" [formGroup]="fileEditForm" class="flex flex-column p-3 h-screen overflow-auto">
+   <div class="flex align-items-center gap-2">
+      <h2>File Info</h2>
+      <div *ngIf="!editing">
+         <p-button icon="pi pi-pencil" styleClass="p-0" [text]="true" [rounded]="true" (onClick)="editing = true" />
+         <p-button icon="pi pi-trash" styleClass="p-0" [text]="true" [rounded]="true" (onClick)="onDelete($event)" />
+      </div>
+      <div *ngIf="editing">
+         <p-button icon="pi pi-check" styleClass="p-0" [text]="true" [rounded]="true" [disabled]="fileEditForm.invalid"
+            (onClick)="onSubmit()" />
+         <p-button icon="pi pi-times" styleClass="p-0" [text]="true" [rounded]="true" (onClick)="onCancel()" />
+      </div>
+   </div>
+   <div class="flex flex-column">
+      <h3>General</h3>
+      <div class="flex flex-column gap-2">
+         <div *ngIf="!editing" class="flex gap-2">
+            <div class="w-3">Name:</div>
+            <div>{{ file.name }}</div>
+         </div>
+         <div *ngIf="editing" class="flex gap-2">
+            <div class="w-3">Name:</div>
+            <input type="text" formControlName="name" pInputText />
+         </div>
+         <div class="flex gap-2">
+            <div class="w-3">Size:</div>
+            <div>{{ file.size | fileSize }}</div>
+         </div>
+         <div class="flex gap-2">
+            <div class="w-3">Type:</div>
+            <div>{{ file.contentType }}</div>
+         </div>
+         <div class="flex gap-2">
+            <div class="w-3">Created:</div>
+            <div>{{ file.createdAt | date: 'medium' }}</div>
+         </div>
+      </div>
+   </div>
+   <div *ngIf="group" class="flex flex-column">
+      <h3>Group</h3>
+      <div class="flex gap-2">
+         <div class="w-3">Name:</div>
+         <div>{{ group.name }}</div>
+      </div>
+   </div>
+   <div class="flex flex-column">
+      <h3>Tags</h3>
+      <div *ngIf="!editing" class="flex flex-column gap-2">
+         <div *ngIf="file.tags.length" class="flex flex-wrap gap-2">
+            <p-badge *ngFor="let tag of file.tags" [value]="tag.name"></p-badge>
+         </div>
+         <div *ngIf="!file.tags.length">No tags</div>
+      </div>
+      <tag-autocomplete *ngIf="editing" [group]="group" [(tags)]="fileEdit.tags"
+         (onTagsValidation)="onTagsValidation($event)"></tag-autocomplete>
+   </div>
+</form>
+<p-confirmDialog />

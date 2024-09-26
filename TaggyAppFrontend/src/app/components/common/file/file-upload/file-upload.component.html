@@ -16,7 +16,7 @@
             </div>
             <div class="flex gap-2 align-items-center">
                <group-select (groupChange)="onGroupChange($event)" />
-               <tag-autocomplete [group]="selectedGroup" [(tags)]="globalTags"/>
+               <tag-autocomplete [group]="selectedGroup" [(tags)]="globalTags" />
             </div>
             <div class="flex flex-column justify-content-center align-items-end gap-2">
                <p-progressBar [value]="totalSizePercent" [showValue]="false"
@@ -33,11 +33,7 @@
             <div *ngFor="let file of files; let i = index"
                class="file-card card flex m-0 flex-column md:flex-row border-1 surface-border justify-content-between w-12 p-3 gap-3">
                <div class="flex-1 flex flex-column justify-content-center min-w-0 w-12 md:w-3">
-                  <div class="flex gap-2">
-                     <i class="pi pi-arrow-up-right-and-arrow-down-left-from-center" (click)="onFileSelected(file)"></i>
-                     <p class="m-0 font-semibold text-ellipsis">{{
-                        file.browserFile.name }}</p>
-                  </div>
+                  <p class="m-0 font-semibold text-ellipsis">{{ file.browserFile.name }}</p>
                   <p-badge *ngIf="file.status === 'failed'" [value]="file.status" severity="danger" />
                   <p-badge *ngIf="file.status === 'cancelled'" [value]="file.status" severity="warning" />
                </div>
@@ -73,7 +69,7 @@
          </div>
          <h3 *ngIf="uploadedFiles.length > 0">Uploaded files</h3>
          <div *ngIf="uploadedFiles.length > 0" class="flex flex-wrap justify-content-center gap-5">
-            <div *ngFor="let file of uploadedFiles; let i = index" (click)="onFileSelected(file)"
+            <div *ngFor="let file of uploadedFiles; let i = index"
                class="file-card card flex flex-column sm:flex-row border-1 surface-border justify-content-between w-12 m-0 p-3 gap-3">
                <div class="flex-1 flex flex-column w-12 sm:w-6 justify-content-center min-w-0">
                   <p class="m-0 font-semibold text-ellipsis">{{
@@ -117,5 +113,4 @@
          </div>
       </ng-template>
    </p-fileUpload>
-   <file-view-dialog [file]="selectedFile" [(visible)]="dialogVisible" />
 </div>

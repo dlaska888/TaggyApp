@@ -1,23 +1,14 @@
+import { CommonModule } from '@angular/common';
+import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  OnInit,
-  Output,
-} from '@angular/core';
-import {
+  DropdownModule,
   DropdownChangeEvent,
   DropdownLazyLoadEvent,
-  DropdownModule,
 } from 'primeng/dropdown';
-import { TaggyAppApiService } from '../../../services/taggyAppApi.service';
-import { PagedResults } from '../../../models/dtos/pagedResults';
-import { SieveModelDto } from '../../../models/dtos/sieveModelDto';
-import { GetGroupDto } from '../../../models/dtos/group/getGroupDto';
-import { CommonModule } from '@angular/common';
+import { GetGroupDto } from '../../../../models/dtos/group/getGroupDto';
+import { PagedResults } from '../../../../models/dtos/pagedResults';
+import { SieveModelDto } from '../../../../models/dtos/sieveModelDto';
+import { TaggyAppApiService } from '../../../../services/taggyAppApi.service';
 
 @Component({
   selector: 'group-select',
@@ -33,7 +24,7 @@ export class GroupSelectComponent implements OnInit {
   rows: number = 10;
 
   @Output()
-  groupChange = new EventEmitter<GetGroupDto>();
+  groupChange: EventEmitter<GetGroupDto> = new EventEmitter<GetGroupDto>();
 
   constructor(private taggyAppApiService: TaggyAppApiService) {}
 

@@ -17,9 +17,14 @@ import {
 import { environment } from '../environments/environment.development';
 import { authInterceptorFn } from './interceptors/auth.interceptor';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { RxFormBuilder } from '@rxweb/reactive-form-validators';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    MessageService,
+    ConfirmationService,
+    RxFormBuilder,
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptorFn])),

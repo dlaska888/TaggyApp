@@ -1,6 +1,6 @@
 <div class="dashboard">
    <div *ngIf="pagedFiles" class="dashboard-content">
-      <p-dataView #dv [value]="pagedFiles.items" [rows]="fileRows" class="flex-1">
+      <p-dataView #dv [value]="pagedFiles.items" [rows]="fileRows" [layout]="layout" class="flex-1">
          <ng-template pTemplate="header">
             <div class="flex">
                <div class="flex flex-column md:flex-row w-12 lg:w-10 xl:w-9 gap-2">
@@ -12,19 +12,23 @@
                         (onChange)="onSortOperatorChange($event)">
                      </p-dropdown>
                   </div>
-                  <div class="w-12 md:w-4">
-                     <group-select (groupChange)="onGroupChange($event)" />
+                  <div class="w-12 md:w-2">
+                     <group-multiselect (groupChange)="onGroupsChange($event)" />
                   </div>
-                  <div *ngIf="selectedGroup" class="w-12 md:w-4 flex">
-                     <p-multiSelect class="w-8" [options]="selectedGroup.tags" [(ngModel)]="selectedTags"
+                  <div *ngIf="selectedGroups" class="w-12 md:w-4 flex">
+                     <p-multiSelect class="w-8" [(ngModel)]="selectedTags" [options]="selectedGroups" [group]="true"
                         [showClear]="true" (onChange)="onTagsChange()" (onClear)="onTagsChange()"
-                        [style]="{'width':'100%'}" display="chip" optionLabel="name" optionValue="name"
-                        placeholder="Tags">
+                        [style]="{'width':'100%'}" display="chip" optionGroupLabel="name" optionGroupChildren="tags"
+                        optionLabel="name" optionValue="name" placeholder="Tags">
+                        <ng-template let-group pTemplate="group">
+                           <div>{{ group.name }}</div>
+                        </ng-template>
                      </p-multiSelect>
                      <p-dropdown class="w-4" [options]="tagOperatorOptions" [style]="{'width':'100%'}"
                         (onChange)="onTagOperatorChange($event)">
                      </p-dropdown>
                   </div>
+                  <p-dataViewLayoutOptions />
                </div>
             </div>
          </ng-template>
@@ -35,7 +39,8 @@
                   <h5 class="card-title text-ellipsis">{{ file.name }}</h5>
                </div>
                <div class="w-12 md:w-9 flex align-items-center gap-3">
-                  <div class="flex flex-grow-0 flex-shrink-0 gap-2 w-6 overflow-x-auto overflow-y-hidden">
+                  <div
+                     class="flex flex-grow-0 flex-shrink-0 align-items-center gap-2 w-6 overflow-x-auto overflow-y-hidden">
                      <p-badge *ngFor="let tag of file.tags" [value]="tag.name"></p-badge>
                   </div>
                   <p class="w-3">{{ file.size | fileSize }}</p>
@@ -43,19 +48,57 @@
                </div>
             </div>
          </ng-template>
+         <ng-template let-file pTemplate="grid" let-files>
+            <div class="grid grid-nogutter">
+               <div class="col-12 sm:col-6 md:col-4 xl:col-6 p-2" *ngFor="let file of files">
+                  <div class="p-4 border-1 surface-border surface-card border-round flex flex-column">
+                     <div class="surface-50 flex justify-content-center border-round p-3">
+                        <div class="relative mx-auto">
+                           <img class="border-round w-full" [src]="file.url" [alt]="file.name"
+                              style="max-width: 300px;" />
+                        </div>
+                     </div>
+                     <div class="pt-4">
+                        <div class="flex flex-row justify-content-between align-items-start gap-2">
+                           <div>
+                              <span class="font-medium text-secondary text-sm">{{ file.category }}</span>
+                              <div class="text-lg font-medium text-900 mt-1">{{ file.name }}</div>
+                           </div>
+                           <div class="surface-100 p-1" style="border-radius: 30px">
+                              <div class="surface-0 flex align-items-center gap-2 justify-content-center py-1 px-2"
+                                 style="border-radius: 30px; box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.04), 0px 1px 2px 0px rgba(0, 0, 0, 0.06)">
+                                 <span class="text-900 font-medium text-sm">{{ file.rating }}</span>
+                                 <i class="pi pi-star-fill text-yellow-500"></i>
+                              </div>
+                           </div>
+                        </div>
+                        <div class="flex flex-column gap-4 mt-4">
+                           <span class="text-2xl font-semibold">{{ '$' + file.price }}</span>
+                           <div class="flex gap-2">
+                              <p-button icon="pi pi-shopping-cart" class="flex-auto md:flex-initial white-space-nowrap"
+                                 label="Buy Now" [disabled]="file.inventoryStatus === 'OUTOFSTOCK'" />
+                              <p-button icon="pi pi-heart" [outlined]="true" />
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </ng-template>
       </p-dataView>
       <p-paginator [rows]="fileRows" [rowsPerPageOptions]="[10, 20, 30]" [totalRecords]="pagedFiles.totalItems"
          (onPageChange)="onPageChange($event)" />
    </div>
-   <p-button label="Add" icon="pi pi-plus" class="dashboard-button" styleClass="bg-white" [rounded]="true"
-      [outlined]="true" [raised]="true" (onClick)="sidebarVisible = !sidebarVisible" />
+   <p-button label="Add" icon="pi pi-plus" class="add-button" styleClass="bg-white" [rounded]="true" [outlined]="true"
+      [raised]="true" (onClick)="sidebarVisible = !sidebarVisible" />
    <p-sidebar class="relative" [(visible)]="sidebarVisible" [fullScreen]="true" [position]="'bottom'"
       [transitionOptions]="'200ms'">
       <ng-template pTemplate="headless">
          <file-upload (onFilesUploaded)="onFilesUploaded()"></file-upload>
-         <p-button icon="pi pi-angle-double-down" class="upload-button bg-white" [rounded]="true" [outlined]="true"
-            (onClick)="sidebarVisible = false"></p-button>
+         <p-button icon="pi pi-angle-double-down" class="upload-close-button bg-white" [rounded]="true"
+            [outlined]="true" (onClick)="sidebarVisible = false"></p-button>
       </ng-template>
    </p-sidebar>
-   <file-view-dialog [file]="selectedFile" [(visible)]="dialogVisible" />
+   <file-view-dialog *ngIf="selectedFile" [file]="selectedFile" [(visible)]="dialogVisible"
+      (fileDelete)="onFileDeleted()" />
 </div>
