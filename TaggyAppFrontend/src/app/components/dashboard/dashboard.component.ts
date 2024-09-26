@@ -22,6 +22,9 @@ import { FileViewDialogComponent } from '../common/file/file-view-dialog/file-vi
 import { GroupMultiSelect } from '../common/group/group-multiselect/group-multiselect.component';
 import { FileUploadComponent } from '../common/file/file-upload/file-upload.component';
 import { GroupSelectComponent } from '../common/group/group-select/group-select.component';
+import { SkeletonModule } from 'primeng/skeleton';
+import { NgOptimizedImage } from '@angular/common';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
@@ -37,6 +40,8 @@ import { GroupSelectComponent } from '../common/group/group-select/group-select.
     PaginatorModule,
     MultiSelectModule,
     FloatLabelModule,
+    SkeletonModule,
+    NgOptimizedImage,
     FileUploadComponent,
     FileSizePipe,
     GroupSelectComponent,
@@ -81,13 +86,24 @@ export class DashboardComponent implements OnInit {
   filePage: number = 1;
   fileRows: number = 10;
 
+  loading: boolean = true;
+  skeletonArray: any[] = Array(this.fileRows);
+
   @ViewChild(GroupSelectComponent)
   groupSelectComponent!: GroupSelectComponent;
 
   constructor(
     public sanitizer: DomSanitizer,
     private taggyAppApiService: TaggyAppApiService
-  ) {}
+  ) {
+    this.pagedFiles = {
+      pageNum: 1,
+      pageSize: 10,
+      totalItems: 0,
+      totalPages: 0,
+      items: [],
+    };
+  }
 
   ngOnInit(): void {
     this.selectedSort = 'createdAt';
@@ -115,7 +131,7 @@ export class DashboardComponent implements OnInit {
   }
 
   onFileSelected(file: GetFileDto): void {
-    console
+    console;
     this.selectedFile = file;
     this.dialogVisible = true;
   }
@@ -161,8 +177,12 @@ export class DashboardComponent implements OnInit {
       this.sort,
       this.tagFilter
     );
-    this.taggyAppApiService.getUserFiles(query).subscribe((response) => {
-      this.pagedFiles = response.body!;
-    });
+    this.loading = true;
+    setTimeout(() => {
+      this.taggyAppApiService.getUserFiles(query).subscribe((response) => {
+        this.pagedFiles = response.body!;
+        this.loading = false;
+      });
+    }, 3000);
   }
 }
