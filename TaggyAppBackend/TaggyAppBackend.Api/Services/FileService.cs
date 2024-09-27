@@ -110,10 +110,7 @@ public class FileService(
         if (file.CreatorId != authContext.GetUserId())
             await groupUserService.VerifyGroupAccess(file.GroupId, GroupRole.Admin);
 
-        dbContext.Files.Remove(file);
-        return
-            await dbContext.SaveChangesAsync() > 0 &&
-            await blobRepo.DeleteBlob(fileId, groupId);
+        return await DeleteFileWithTags(file) && await blobRepo.DeleteBlob(fileId, groupId);
     }
 
     public async Task<Stream> Download(string groupId, string fileId)
@@ -155,6 +152,35 @@ public class FileService(
         }
 
         return file;
+    }
+
+    private async Task<bool> DeleteFileWithTags(File file)
+    {
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+        try
+        {
+            var fileTags = dbContext.Tags
+                .Include(t => t.Files)
+                .Where(t => t.Files.Any(f => f.Id == file.Id)); 
+            
+            foreach (var tag in fileTags)
+            {
+                if (tag.Files.Count == 1)
+                    dbContext.Tags.Remove(tag);
+            }
+            
+            dbContext.Files.Remove(file);
+            
+            var result = await dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return result > 0;
+        }
+        catch (Exception e)
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     private async Task<File> FindFile(string groupId, string fileId)

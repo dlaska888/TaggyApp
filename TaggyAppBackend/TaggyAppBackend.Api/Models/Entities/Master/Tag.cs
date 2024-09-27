@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 using Sieve.Attributes;
 
 namespace TaggyAppBackend.Api.Models.Entities.Master;
@@ -12,5 +13,7 @@ public class Tag : Entity
     [MaxLength(36)]
     public string GroupId { get; set; } = null!;
     public virtual Group Group { get; set; } = null!;
+    
+    [DeleteBehavior(DeleteBehavior.NoAction)]
     public virtual ICollection<File> Files { get; } = [];
 }

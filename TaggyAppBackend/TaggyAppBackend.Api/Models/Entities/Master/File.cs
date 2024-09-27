@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.EntityFrameworkCore;
 using Sieve.Attributes;
 using TaggyAppBackend.Api.Models.Enums;
 
@@ -30,5 +31,6 @@ public class File : Entity
     [MaxLength(36)] public string GroupId { get; set; } = null!;
     public virtual Group Group { get; set; } = null!;
 
+    [DeleteBehavior(DeleteBehavior.NoAction)]
     public virtual ICollection<Tag> Tags { get; set; } = [];
 }
