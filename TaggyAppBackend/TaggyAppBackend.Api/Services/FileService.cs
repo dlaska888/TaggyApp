@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Sieve.Models;
 using TaggyAppBackend.Api.Exceptions;
+using TaggyAppBackend.Api.Exceptions.Repo;
+using TaggyAppBackend.Api.Exceptions.Service;
 using TaggyAppBackend.Api.Helpers.Interfaces;
 using TaggyAppBackend.Api.Models.Dtos;
 using TaggyAppBackend.Api.Models.Dtos.File;
@@ -29,6 +31,8 @@ public class FileService(
     IPagingHelper pagingHelper,
     IMapper mapper) : IFileService
 {
+    private readonly AzureBlobOptions _blobOptionsValue = blobOptions.Value;
+
     public async Task<PagedResults<GetFileDto>> GetAll(SieveModel query)
     {
         var userId = authContext.GetUserId();
@@ -74,13 +78,13 @@ public class FileService(
 
         try
         {
-            var blobInfo = await blobRepo.UploadBlob(fileName, groupId, stream);
+            var blobInfo = await blobRepo.UploadBlob(fileName, _blobOptionsValue.Container, stream);
             file.ContentType = blobInfo.ContentType;
             file.Size = blobInfo.Size;
         }
         catch (BlobSizeExceededException e)
         {
-            throw new BadRequestException($"File size exceeds the {blobOptions.Value.MaxBlobSize}B limit");
+            throw new BadRequestException($"File size exceeds the {_blobOptionsValue.MaxBlobSize}B limit");
         }
 
         dbContext.Files.Add(file);
@@ -110,13 +114,13 @@ public class FileService(
         if (file.CreatorId != authContext.GetUserId())
             await groupUserService.VerifyGroupAccess(file.GroupId, GroupRole.Admin);
 
-        return await DeleteFileWithTags(file) && await blobRepo.DeleteBlob(fileId, groupId);
+        return await DeleteFileWithTags(file) && await blobRepo.DeleteBlob(fileId, _blobOptionsValue.Container);
     }
 
     public async Task<Stream> Download(string groupId, string fileId)
     {
         await groupUserService.VerifyGroupAccess(groupId);
-        return await blobRepo.DownloadBlob(fileId, groupId);
+        return await blobRepo.DownloadBlob(fileId, _blobOptionsValue.Container);
     }
 
     #region Private Methods
@@ -161,16 +165,16 @@ public class FileService(
         {
             var fileTags = dbContext.Tags
                 .Include(t => t.Files)
-                .Where(t => t.Files.Any(f => f.Id == file.Id)); 
-            
+                .Where(t => t.Files.Any(f => f.Id == file.Id));
+
             foreach (var tag in fileTags)
             {
                 if (tag.Files.Count == 1)
                     dbContext.Tags.Remove(tag);
             }
-            
+
             dbContext.Files.Remove(file);
-            
+
             var result = await dbContext.SaveChangesAsync();
             await transaction.CommitAsync();
 
@@ -220,7 +224,7 @@ public class FileService(
     private async Task<GetFileDto> MapFileToDto(File file)
     {
         var mapped = mapper.Map<GetFileDto>(file);
-        mapped.Url = await blobRepo.GetBlobDownloadPath(file.TrustedName, file.GroupId);
+        mapped.Url = await blobRepo.GetBlobDownloadPath(file.TrustedName, _blobOptionsValue.Container);
         mapped.Tags = file.Tags.OrderBy(t => t.Name).Select(mapper.Map<GetTagDto>).ToList();
         return mapped;
     }

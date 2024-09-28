@@ -21,10 +21,10 @@ export class UpdateFileDto {
   tags: CreateTagDto[] = [];
 
   static fromGetFileDto(file: GetFileDto): UpdateFileDto {
-    const updateFileDto = new UpdateFileDto();
-    updateFileDto.name = file.name;
-    updateFileDto.description = file.description;
-    updateFileDto.tags = file.tags.map((tag) => CreateTagDto.fromGetTagDto(tag));
-    return updateFileDto;
+    const dto = new UpdateFileDto();
+    dto.name = file.name;
+    dto.description = file.description;
+    dto.tags = file.tags.map((tag) => CreateTagDto.fromGetTagDto(tag));
+    return dto;
   }
 }

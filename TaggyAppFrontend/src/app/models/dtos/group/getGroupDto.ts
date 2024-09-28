@@ -4,7 +4,7 @@ import { GetTagDto } from '../tag/getTagDto';
 
 export class GetGroupDto extends GetDto {
   name!: string;
-  description?: string | null;
+  description?: string;
   users!: GetGroupUserDto[];
   tags!: GetTagDto[];
 }

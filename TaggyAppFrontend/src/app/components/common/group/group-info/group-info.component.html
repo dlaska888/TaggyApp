@@ -1,0 +1,48 @@
+<form *ngIf="groupEditForm" [formGroup]="groupEditForm" class="flex flex-column p-3 h-screen overflow-auto">
+   <div class="flex align-items-center gap-2">
+      <h2>Group Info</h2>
+      <div *ngIf="!editing">
+         <p-button icon="pi pi-pencil" styleClass="p-0" [text]="true" [rounded]="true" (onClick)="editing = true" />
+         <p-button icon="pi pi-trash" styleClass="p-0" [text]="true" [rounded]="true" (onClick)="onDelete($event)" />
+      </div>
+      <div *ngIf="editing">
+         <p-button icon="pi pi-check" styleClass="p-0" [text]="true" [rounded]="true" [disabled]="groupEditForm.invalid"
+            (onClick)="onSubmit()" />
+         <p-button icon="pi pi-times" styleClass="p-0" [text]="true" [rounded]="true" (onClick)="onCancel()" />
+      </div>
+   </div>
+   <div class="flex flex-column">
+      <h3>General</h3>
+      <div class="flex flex-column gap-2">
+         <div *ngIf="!editing" class="flex gap-2">
+            <div class="w-3">Name:</div>
+            <div>{{ selectedGroup.name }}</div>
+         </div>
+         <div *ngIf="editing" class="flex gap-2">
+            <div class="w-3">Name:</div>
+            <input type="text" formControlName="name" pInputText />
+         </div>
+         <div *ngIf="!editing" class="flex gap-2">
+            <div class="w-3">Description:</div>
+            <div>{{ selectedGroup.description }}</div>
+         </div>
+         <div *ngIf="editing" class="flex gap-2">
+            <div class="w-3">Description:</div>
+            <input type="text" formControlName="description" pInputText />
+         </div>
+         <div class="flex gap-2">
+            <div class="w-3">Created:</div>
+            <div>{{ selectedGroup.createdAt | date: 'medium' }}</div>
+         </div>
+      </div>
+   </div>
+   <div class="flex flex-column">
+      <h3>Members</h3>
+      <div class="flex flex-column gap-2">
+         <div class="flex flex-wrap gap-2">
+            <p *ngFor="let user of selectedGroup.users" class="m-0">{{user.name}}</p>
+         </div>
+      </div>
+   </div>
+</form>
+<p-confirmDialog />

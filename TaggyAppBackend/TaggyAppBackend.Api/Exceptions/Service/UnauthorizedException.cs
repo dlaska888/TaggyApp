@@ -1,3 +1,3 @@
-﻿namespace TaggyAppBackend.Api.Exceptions;
+﻿namespace TaggyAppBackend.Api.Exceptions.Service;
 
 public class UnauthorizedException(string message) : Exception(message);

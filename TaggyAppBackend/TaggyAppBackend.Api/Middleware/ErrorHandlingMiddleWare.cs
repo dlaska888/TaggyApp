@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Sieve.Exceptions;
 using TaggyAppBackend.Api.Exceptions;
+using TaggyAppBackend.Api.Exceptions.Service;
 
 namespace TaggyAppBackend.Api.Middleware;
 

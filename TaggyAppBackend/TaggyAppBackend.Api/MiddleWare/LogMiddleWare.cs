@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace TaggyAppBackend.Api.MiddleWare;
+namespace TaggyAppBackend.Api.Middleware;
 
 public class LogMiddleWare: IMiddleware
 {

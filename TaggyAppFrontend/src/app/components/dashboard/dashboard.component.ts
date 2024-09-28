@@ -19,12 +19,15 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { TagAutocompleteComponent } from '../common/tag-autocomplete/tag-autocomplete.component';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { FileViewDialogComponent } from '../common/file/file-view-dialog/file-view-dialog.component';
-import { GroupMultiSelect } from '../common/group/group-multiselect/group-multiselect.component';
 import { FileUploadComponent } from '../common/file/file-upload/file-upload.component';
 import { GroupSelectComponent } from '../common/group/group-select/group-select.component';
 import { SkeletonModule } from 'primeng/skeleton';
+import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { NgOptimizedImage } from '@angular/common';
-import { finalize } from 'rxjs';
+import { InputText, InputTextModule } from 'primeng/inputtext';
+import { GroupInfoComponent } from '../common/group/group-info/group-info.component';
+import { UserStateService } from '../../services/userStateService';
+import { GroupStateService } from '../../services/groupStateService';
 
 @Component({
   selector: 'app-dashboard',
@@ -40,6 +43,8 @@ import { finalize } from 'rxjs';
     PaginatorModule,
     MultiSelectModule,
     FloatLabelModule,
+    OverlayPanelModule,
+    InputTextModule,
     SkeletonModule,
     NgOptimizedImage,
     FileUploadComponent,
@@ -47,22 +52,28 @@ import { finalize } from 'rxjs';
     GroupSelectComponent,
     TagAutocompleteComponent,
     FileViewDialogComponent,
-    GroupMultiSelect,
+    GroupInfoComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent implements OnInit {
   layout: 'list' | 'grid' = 'list';
+  searchPlaceholder: string = 'Search...';
+
+  nameQuery: string = '';
 
   pagedFiles!: PagedResults<GetFileDto>;
   pagedGroups!: PagedResults<GetGroupDto>;
 
   selectedFile!: GetFileDto;
-  selectedGroups!: GetGroupDto[];
+  selectedGroup!: GetGroupDto;
 
-  sidebarVisible: boolean = false;
-  dialogVisible: boolean = false;
+  menuBarVisible: boolean = false;
+  groupViewVisible: boolean = false;
+  filtersVisible: boolean = false;
+  fileUploadVisible: boolean = false;
+  fileViewVisible: boolean = false;
 
   selectedSort!: string;
   sortOptions!: SelectItem[];
@@ -85,6 +96,7 @@ export class DashboardComponent implements OnInit {
 
   filePage: number = 1;
   fileRows: number = 10;
+  fileRowsOptions: number[] = [10, 20, 50];
 
   loading: boolean = true;
   skeletonArray: any[] = Array(this.fileRows);
@@ -94,18 +106,33 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     public sanitizer: DomSanitizer,
-    private taggyAppApiService: TaggyAppApiService
+    private taggyApi: TaggyAppApiService,
+    private userState: UserStateService,
+    private groupState: GroupStateService
   ) {
+    this.userState.initUserState();
+    this.userState.getUser().subscribe((user) => {
+      if (user) {
+        this.groupState.initGroupState();
+      }
+    });
+    this.groupState.getGroup().subscribe((group) => {
+      if (group) {
+        this.selectedGroup = group;
+        this.refreshGroup();
+        this.menuBarVisible = false;
+      }
+    });
+  }
+
+  ngOnInit(): void {
     this.pagedFiles = {
-      pageNum: 1,
-      pageSize: 10,
+      pageNum: this.filePage,
+      pageSize: this.fileRows,
       totalItems: 0,
       totalPages: 0,
       items: [],
     };
-  }
-
-  ngOnInit(): void {
     this.selectedSort = 'createdAt';
     this.sortOptions = [
       { label: 'Name', value: 'name' },
@@ -122,22 +149,19 @@ export class DashboardComponent implements OnInit {
       { label: 'Any', value: '@=' },
       { label: 'All', value: '==' },
     ];
-    this.getFiles();
   }
 
   onFilesUploaded(): void {
-    this.getFiles();
-    if (this.groupSelectComponent) this.groupSelectComponent.refreshGroups();
+    this.refreshGroup();
   }
 
   onFileSelected(file: GetFileDto): void {
-    console;
     this.selectedFile = file;
-    this.dialogVisible = true;
+    this.fileViewVisible = true;
   }
 
   onFileDeleted(): void {
-    this.getFiles();
+    this.refreshGroup();
   }
 
   onPageChange(event: PaginatorState) {
@@ -153,11 +177,6 @@ export class DashboardComponent implements OnInit {
 
   onSortOperatorChange(event: DropdownChangeEvent) {
     this.selectedSortOperator = event.value ?? '-';
-    this.getFiles();
-  }
-
-  onGroupsChange(groups: GetGroupDto[]) {
-    this.selectedGroups = groups;
     this.getFiles();
   }
 
@@ -178,11 +197,24 @@ export class DashboardComponent implements OnInit {
       this.tagFilter
     );
     this.loading = true;
-    setTimeout(() => {
-      this.taggyAppApiService.getUserFiles(query).subscribe((response) => {
+    this.taggyApi
+      .getGroupFiles(this.selectedGroup.id, query)
+      .subscribe((response) => {
         this.pagedFiles = response.body!;
         this.loading = false;
       });
-    }, 3000);
+  }
+
+  private refreshGroup(): void {
+    this.taggyApi.getGroupById(this.selectedGroup.id).subscribe(
+      (response) => {
+        this.selectedGroup = response.body!;
+        this.searchPlaceholder = `Search in ${response.body!.name}...`;
+        this.getFiles();
+      },
+      (error) => {
+        console.error(error);
+      }
+    );
   }
 }

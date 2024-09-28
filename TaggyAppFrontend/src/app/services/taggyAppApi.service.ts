@@ -1,10 +1,8 @@
 import {
   HttpClient,
   HttpContext,
-  HttpContextToken,
   HttpEvent,
   HttpParams,
-  HttpParamsOptions,
   HttpResponse,
 } from '@angular/common/http';
 import { TaggyAppApiConstant } from '../constants/taggyAppApi.constant';
@@ -22,6 +20,8 @@ import { GetGroupDto } from '../models/dtos/group/getGroupDto';
 import { SieveModelDto } from '../models/dtos/sieveModelDto';
 import { GetTagDto } from '../models/dtos/tag/getTagDto';
 import { UpdateFileDto } from '../models/dtos/file/updateFileDto';
+import { CreateGroupDto } from '../models/dtos/group/createGroupDto';
+import { UpdateGroupDto } from '../models/dtos/group/updateGroupDto';
 
 @Injectable({
   providedIn: 'root',
@@ -80,26 +80,8 @@ export class TaggyAppApiService {
     });
   }
 
-  public getUserFiles(
-    query: SieveModelDto
-  ): Observable<HttpResponse<PagedResults<GetFileDto>>> {
-    return this.http.get<PagedResults<GetFileDto>>(TaggyAppApiConstant.FILE, {
-      observe: 'response',
-      params: this.getQueryParams(query),
-    });
-  }
-
-  public getUserTags(
-    query: SieveModelDto
-  ): Observable<HttpResponse<PagedResults<GetTagDto>>> {
-    return this.http.get<PagedResults<GetTagDto>>(TaggyAppApiConstant.TAG, {
-      observe: 'response',
-      params: this.getQueryParams(query),
-    });
-  }
-
-  public getUserGroups(
-    query: SieveModelDto
+  public getGroups(
+    query: SieveModelDto = new SieveModelDto()
   ): Observable<HttpResponse<PagedResults<GetGroupDto>>> {
     return this.http.get<PagedResults<GetGroupDto>>(TaggyAppApiConstant.GROUP, {
       observe: 'response',
@@ -111,6 +93,45 @@ export class TaggyAppApiService {
     return this.http.get<GetGroupDto>(TaggyAppApiConstant.GROUP + `/${id}`, {
       observe: 'response',
     });
+  }
+
+  public createGroup(dto: CreateGroupDto): Observable<HttpResponse<any>> {
+    return this.http.post(`${TaggyAppApiConstant.GROUP}`, dto, {
+      reportProgress: true,
+      observe: 'response',
+    });
+  }
+
+  public updateGroup(
+    groupId: string,
+    dto: UpdateGroupDto
+  ): Observable<HttpResponse<GetGroupDto>> {
+    return this.http.put<GetGroupDto>(
+      `${TaggyAppApiConstant.GROUP}/${groupId}`,
+      dto,
+      {
+        observe: 'response',
+      }
+    );
+  }
+
+  public deleteGroup(groupId: string): Observable<HttpResponse<any>> {
+    return this.http.delete(`${TaggyAppApiConstant.GROUP}/${groupId}`, {
+      observe: 'response',
+    });
+  }
+
+  public getGroupFiles(
+    groupId: string,
+    query: SieveModelDto
+  ): Observable<HttpResponse<PagedResults<GetFileDto>>> {
+    return this.http.get<PagedResults<GetFileDto>>(
+      `${TaggyAppApiConstant.GROUP}/${groupId}/file`,
+      {
+        observe: 'response',
+        params: this.getQueryParams(query),
+      }
+    );
   }
 
   public createFile(

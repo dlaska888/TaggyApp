@@ -8,6 +8,7 @@ public class GetGroupDto : GetDto
 {
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
+    public bool IsPrivate { get; set; }    
     public IEnumerable<GetGroupUserDto> Users { get; set; } = [];
     public IEnumerable<GetTagDto> Tags { get; set; } = [];
  }

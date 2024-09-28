@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Sieve.Models;
 using TaggyAppBackend.Api.Attributes;
 using TaggyAppBackend.Api.Exceptions;
+using TaggyAppBackend.Api.Exceptions.Service;
 using TaggyAppBackend.Api.Helpers;
 using TaggyAppBackend.Api.Models.Dtos;
 using TaggyAppBackend.Api.Models.Dtos.File;

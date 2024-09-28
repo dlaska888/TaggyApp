@@ -1,6 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { HttpClientModule, HttpEvent, HttpEventType } from '@angular/common/http';
-import { Component, Output, EventEmitter } from '@angular/core';
+import {
+  HttpClientModule,
+  HttpEvent,
+  HttpEventType,
+} from '@angular/common/http';
+import { Component, Output, EventEmitter, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { AutoCompleteModule } from 'primeng/autocomplete';
@@ -8,7 +12,11 @@ import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
 import { FloatLabelModule } from 'primeng/floatlabel';
-import { FileUploadModule, FileSelectEvent, FileUploadHandlerEvent } from 'primeng/fileupload';
+import {
+  FileUploadModule,
+  FileSelectEvent,
+  FileUploadHandlerEvent,
+} from 'primeng/fileupload';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ToastModule } from 'primeng/toast';
 import { RoundProgressComponent } from 'angular-svg-round-progressbar';
@@ -51,14 +59,17 @@ import { FileViewDialogComponent } from '../file-view-dialog/file-view-dialog.co
 export class FileUploadComponent {
   files: ProgressFile[] = [];
   uploadedFiles: ProgressFile[] = [];
+
   totalSize: number = 0;
   totalSizePercent: number = 0;
   sizeLimit: number = environment.taggyappApi.fileSizeLimit;
 
-  selectedGroup!: GetGroupDto;
   dialogVisible: boolean = false;
 
   globalTags: CreateTagDto[] = [];
+
+  @Input()
+  group!: GetGroupDto;
 
   @Output()
   onFilesUploaded: EventEmitter<void> = new EventEmitter<void>();
@@ -108,10 +119,6 @@ export class FileUploadComponent {
     this.globalTags = event;
   }
 
-  onGroupChange(event: GetGroupDto) {
-    this.getGroup(event.id);
-  }
-
   onImageError(event: any) {
     event.target.src =
       'https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png';
@@ -143,7 +150,7 @@ export class FileUploadComponent {
 
     file.status = 'uploading';
     const request = this.taggyAppApiService
-      .createFile(this.selectedGroup.id, formData)
+      .createFile(this.group.id, formData)
       .subscribe(
         (event: HttpEvent<any>) => {
           if (event.type === HttpEventType.UploadProgress) {
@@ -187,7 +194,7 @@ export class FileUploadComponent {
 
   private getGroup(id: string): void {
     this.taggyAppApiService.getGroupById(id).subscribe((response) => {
-      this.selectedGroup = response.body!;
+      this.group = response.body!;
     });
   }
 }

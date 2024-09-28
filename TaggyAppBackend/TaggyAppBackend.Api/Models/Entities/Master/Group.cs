@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 using Sieve.Attributes;
 
 namespace TaggyAppBackend.Api.Models.Entities.Master;
@@ -11,7 +10,8 @@ public class Group : Entity
     public string Name { get; set; } = null!;
 
     [Sieve(CanFilter = true)]
-    [MaxLength(255)] public string? Description { get; set; }
+    [MaxLength(255)]
+    public string? Description { get; set; }
 
     public virtual ICollection<GroupUser> GroupUsers { get; } = [];
     public virtual ICollection<Tag> Tags { get; } = [];

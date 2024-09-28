@@ -46,6 +46,12 @@
     object-fit: cover;
     border-radius: 10px;
   }
+
+  .info-close-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+  }
 }
 
 :host ::ng-deep .dashboard {

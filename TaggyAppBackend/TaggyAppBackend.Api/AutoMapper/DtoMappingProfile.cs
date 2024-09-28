@@ -34,7 +34,8 @@ public class DtoMappingProfile : Profile
         CreateMap<CreateGroupUserDto, GroupUser>();
         CreateMap<UpdateGroupUserDto, GroupUser>();
 
-        CreateMap<TaggyUser, GetAccountDto>();
+        CreateMap<TaggyUser, GetAccountDto>()
+            .ForMember(tu => tu.PrivateGroupId, opt => opt.Ignore());
 
         CreateMap<File, GetFileDto>()
             .ForMember(f => f.Name, opt => opt.MapFrom(f => f.UntrustedName))

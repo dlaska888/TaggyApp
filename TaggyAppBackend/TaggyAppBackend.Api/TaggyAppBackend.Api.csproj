@@ -31,4 +31,8 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="Migrations\20240927204756_AddedGroupIsPrivate.Designer.cs" />
+    </ItemGroup>
+
 </Project>

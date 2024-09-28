@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using TaggyAppBackend.Api.Exceptions;
+using TaggyAppBackend.Api.Exceptions.Service;
 using TaggyAppBackend.Api.Handlers.Interfaces;
 using TaggyAppBackend.Api.Models.Dtos.Auth;
 using TaggyAppBackend.Api.Models.Entities;
@@ -138,7 +138,7 @@ public class AuthService(
             throw new BadRequestException("Failed to create user account.");
         }
 
-        var group = new Group { Name = "Default" };
+        var group = new Group { Name = dto.UserName };
 
         group.GroupUsers.Add(new GroupUser { UserId = user.Id, GroupId = group.Id, Role = GroupRole.Owner });
         dbContext.Groups.Add(group);

@@ -5,6 +5,7 @@ using Google.Apis.Auth;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using TaggyAppBackend.Api.Exceptions;
+using TaggyAppBackend.Api.Exceptions.Service;
 using TaggyAppBackend.Api.Handlers.Interfaces;
 using TaggyAppBackend.Api.Models.Dtos.Auth;
 using TaggyAppBackend.Api.Models.Entities.Master;

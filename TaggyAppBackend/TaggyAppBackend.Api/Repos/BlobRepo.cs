@@ -9,6 +9,7 @@ using Azure.Storage.Sas;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Options;
 using TaggyAppBackend.Api.Exceptions;
+using TaggyAppBackend.Api.Exceptions.Repo;
 using TaggyAppBackend.Api.Models.Options;
 using TaggyAppBackend.Api.Repos.Interfaces;
 using BlobInfo = TaggyAppBackend.Api.Models.Repo.BlobInfo;
@@ -129,7 +130,7 @@ public class BlobRepo : IBlobRepo
         var container = _client.GetBlobContainerClient(containerName);
         if (!await container.ExistsAsync())
         {
-            await container.CreateAsync();
+            throw new BlobContainerNotFoundException();
         }
 
         return container;
