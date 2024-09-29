@@ -8,6 +8,7 @@ namespace TaggyAppBackend.Api.Models.Entities;
 [PrimaryKey(nameof(UserId), nameof(GroupId))]
 public class GroupUser
 {
+    [Sieve(CanFilter = true, CanSort = true)]
     public GroupRole Role { get; set; }
 
     public string UserId { get; set; }

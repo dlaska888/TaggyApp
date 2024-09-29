@@ -4,7 +4,7 @@ import {
   HttpEvent,
   HttpEventType,
 } from '@angular/common/http';
-import { Component, Output, EventEmitter, Input } from '@angular/core';
+import { Component, Output, EventEmitter, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { AutoCompleteModule } from 'primeng/autocomplete';
@@ -56,7 +56,7 @@ import { FileViewDialogComponent } from '../file-view-dialog/file-view-dialog.co
   ],
   providers: [MessageService],
 })
-export class FileUploadComponent {
+export class FileUploadComponent implements OnInit {
   files: ProgressFile[] = [];
   uploadedFiles: ProgressFile[] = [];
 
@@ -76,8 +76,12 @@ export class FileUploadComponent {
 
   constructor(
     private taggyAppApiService: TaggyAppApiService,
-    private messageService: MessageService
+    private messageService: MessageService,
   ) {}
+
+  ngOnInit() {
+    this.getGroup(this.group.id);
+  }
 
   uploadHandler(event: FileUploadHandlerEvent) {
     for (const file of this.files) {

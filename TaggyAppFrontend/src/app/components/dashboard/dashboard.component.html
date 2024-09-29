@@ -107,11 +107,11 @@
       [transitionOptions]="'200ms'">
       <ng-template pTemplate="headless">
          <group-info />
-         <p-button icon="pi pi-times" class="info-close-button" [text]="true" [rounded]="true"
+         <p-button icon="pi pi-times" class="info-close-button mt-2" [text]="true" [rounded]="true"
             (onClick)="groupViewVisible = false"></p-button>
       </ng-template>
    </p-sidebar>
-   <p-sidebar class="relative" [(visible)]="fileUploadVisible" [fullScreen]="true" [position]="'bottom'"
+   <p-sidebar class="relative" appendTo="body" [(visible)]="fileUploadVisible" [fullScreen]="true" [position]="'bottom'"
       [transitionOptions]="'200ms'">
       <ng-template pTemplate="headless">
          <file-upload [group]="selectedGroup" (onFilesUploaded)="onFilesUploaded()"></file-upload>

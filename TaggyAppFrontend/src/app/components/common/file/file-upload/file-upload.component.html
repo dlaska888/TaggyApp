@@ -12,7 +12,6 @@
                   [outlined]="true" severity="success" [disabled]="!files || files.length === 0" />
                <p-button (onClick)="clearEvent(clearCallback)" icon="pi pi-times" [rounded]="true" [outlined]="true"
                   severity="danger" [disabled]="!files || files.length === 0" />
-
             </div>
             <tag-autocomplete [group]="group" [(tags)]="globalTags" />
             <div class="flex flex-column justify-content-center align-items-end gap-2">
@@ -65,6 +64,8 @@
             </div>
          </div>
          <h3 *ngIf="uploadedFiles.length > 0">Uploaded files</h3>
+         <p-button *ngIf="uploadedFiles.length > 0" label="Clear" icon="pi pi-times" [rounded]="true" [outlined]="true"
+            (onClick)="uploadedFiles = []" />
          <div *ngIf="uploadedFiles.length > 0" class="flex flex-wrap justify-content-center gap-5">
             <div *ngFor="let file of uploadedFiles; let i = index"
                class="file-card card flex flex-column sm:flex-row border-1 surface-border justify-content-between w-12 m-0 p-3 gap-3">

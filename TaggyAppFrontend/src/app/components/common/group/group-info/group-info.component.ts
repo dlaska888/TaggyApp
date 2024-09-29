@@ -76,7 +76,6 @@ export class GroupInfoComponent {
   }
 
   onDelete(event: Event) {
-    console.log(event);
     this.confirmationService.confirm({
       target: event.target as EventTarget,
       header: 'Delete group',

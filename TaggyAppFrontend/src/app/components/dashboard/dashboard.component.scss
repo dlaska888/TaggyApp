@@ -4,12 +4,6 @@
   overflow-y: hide;
   position: relative;
 
-  .text-ellipsis {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
   .dashboard-content {
     display: flex;
     flex-direction: column;

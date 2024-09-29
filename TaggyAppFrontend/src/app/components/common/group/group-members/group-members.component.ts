@@ -15,6 +15,8 @@ import { CreateGroupUserDto } from '../../../../models/dtos/groupUser/createGrou
 import { RxFormBuilder } from '@rxweb/reactive-form-validators';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { SieveModelDto } from '../../../../models/dtos/sieveModelDto';
+import { ConfirmationService } from 'primeng/api';
 
 @Component({
   selector: 'group-members',
@@ -41,6 +43,8 @@ export class GroupMembersComponent implements OnInit {
   newGroupUserForm!: FormGroup;
   formVisible: boolean = false;
 
+  editGroupUser!: UpdateGroupUserDto;
+
   isEditing = (user: GetGroupUserDto): boolean =>
     this.selectedGroupUser === user;
   hasLowerRole = (user: GetGroupUserDto): boolean =>
@@ -49,17 +53,21 @@ export class GroupMembersComponent implements OnInit {
     user.userId === this.authUser.id;
 
   roleOptions = [
-    { label: 'Member', value: GroupRole.Normal },
-    { label: 'Moderator', value: GroupRole.Moderator },
-    { label: 'Admin', value: GroupRole.Admin },
-    { label: 'Owner', value: GroupRole.Owner },
+    { label: this.roleToLabel(GroupRole.Normal), value: GroupRole.Normal },
+    {
+      label: this.roleToLabel(GroupRole.Moderator),
+      value: GroupRole.Moderator,
+    },
+    { label: this.roleToLabel(GroupRole.Admin), value: GroupRole.Admin },
+    { label: this.roleToLabel(GroupRole.Owner), value: GroupRole.Owner },
   ];
 
   constructor(
     private groupState: GroupStateService,
     private userState: UserStateService,
     private api: TaggyAppApiService,
-    private fb: RxFormBuilder
+    private fb: RxFormBuilder,
+    private confirmationService: ConfirmationService
   ) {}
 
   ngOnInit(): void {
@@ -70,9 +78,7 @@ export class GroupMembersComponent implements OnInit {
       this.groupState.getGroup$().subscribe((group) => {
         if (!group) return;
         this.selectedGroup = group;
-        this.roleOptions = this.roleOptions.filter(
-          (role) => role.value < group.currentUserRole
-        );
+        this.initRoleOptions();
         this.refreshGroupUsers();
       });
     });
@@ -90,10 +96,11 @@ export class GroupMembersComponent implements OnInit {
 
   onUserEdit(event: GetGroupUserDto) {
     this.selectedGroupUser = event;
+    this.editGroupUser = UpdateGroupUserDto.fromGetGroupUserDto(event);
   }
 
   onRoleChange(event: DropdownChangeEvent) {
-    this.selectedGroupUser!.role = event.value;
+    this.editGroupUser.role = event.value;
   }
 
   onUserEditSubmit() {
@@ -101,7 +108,7 @@ export class GroupMembersComponent implements OnInit {
       .updateGroupUser(
         this.selectedGroup.id,
         this.selectedGroupUser!.userId,
-        UpdateGroupUserDto.fromGetGroupUserDto(this.selectedGroupUser!)
+        this.editGroupUser
       )
       .subscribe((_) => {
         this.refreshGroupUsers();
@@ -110,21 +117,58 @@ export class GroupMembersComponent implements OnInit {
 
   onUserEditCancel() {
     this.selectedGroupUser = null;
+    this.editGroupUser = new UpdateGroupUserDto();
   }
 
-  onUserRemove(event: GetGroupUserDto) {
-    this.api
-      .deleteGroupUser(this.selectedGroup.id, event.userId)
-      .subscribe((_) => {
-        this.refreshGroupUsers();
-      });
+  onUserRemove(event: Event, groupUser: GetGroupUserDto) {
+    this.confirmationService.confirm({
+      target: event.target as EventTarget,
+      header: 'Remove user',
+      message: 'This action cannot be undone',
+      icon: 'pi pi-exclamation-triangle',
+      acceptIcon: 'none',
+      rejectIcon: 'none',
+      rejectButtonStyleClass: 'p-button-text',
+      accept: () => {
+        this.api
+          .deleteGroupUser(this.selectedGroup.id, groupUser.userId)
+          .subscribe((_) => {
+            this.refreshGroupUsers();
+          });
+      },
+    });
+  }
+
+  roleToLabel(role: GroupRole): string {
+    switch (role) {
+      case GroupRole.Normal:
+        return 'Member';
+      case GroupRole.Moderator:
+        return 'Moderator';
+      case GroupRole.Admin:
+        return 'Admin';
+      case GroupRole.Owner:
+        return 'Owner';
+    }
   }
 
   private refreshGroupUsers() {
+    const query = new SieveModelDto();
+    query.pageSize = 100;
+    query.page = 1;
+    query.sorts = '-role';
+    this.api
+      .getGroupUsers(this.selectedGroup.id, query)
+      .subscribe((response) => {
+        this.groupUsers = response.body!.items;
+      });
     this.selectedGroupUser = null;
-    this.api.getGroupUsers(this.selectedGroup.id).subscribe((response) => {
-      this.groupUsers = response.body!.items;
-    });
+  }
+
+  private initRoleOptions() {
+    this.roleOptions = this.roleOptions.filter(
+      (role) => role.value < this.selectedGroup.currentUserRole
+    );
   }
 
   private initNewGroupUserForm() {
