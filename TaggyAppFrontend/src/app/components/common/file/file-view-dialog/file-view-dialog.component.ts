@@ -3,7 +3,7 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { CommonModule } from '@angular/common';
 import { MenuModule } from 'primeng/menu';
-import { FileViewModel } from '../../../../models/ui/fileViewModel';
+import { FileViewModel } from '../../../../models/ui/fileView.model';
 import { ToastModule } from 'primeng/toast';
 import { MenuItem } from 'primeng/api';
 import { SidebarModule } from 'primeng/sidebar';

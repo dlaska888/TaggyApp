@@ -18,6 +18,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
 import { UpdateGroupDto } from '../../../../models/dtos/group/updateGroupDto';
 import { GroupStateService } from '../../../../services/groupStateService';
+import { GroupMembersComponent } from "../group-members/group-members.component";
 
 @Component({
   selector: 'group-info',
@@ -30,7 +31,8 @@ import { GroupStateService } from '../../../../services/groupStateService';
     ButtonModule,
     ConfirmDialogModule,
     TagAutocompleteComponent,
-  ],
+    GroupMembersComponent
+],
   templateUrl: './group-info.component.html',
   styleUrl: './group-info.component.scss',
 })
@@ -47,7 +49,7 @@ export class GroupInfoComponent {
     private confirmationService: ConfirmationService,
     private fb: RxFormBuilder
   ) {
-    this.groupState.getGroup().subscribe((group) => {
+    this.groupState.getGroup$().subscribe((group) => {
       if (!group) return;
       if (!this.selectedGroup) {
         this.selectedGroup = group;

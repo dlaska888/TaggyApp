@@ -100,7 +100,7 @@
          <group-select />
          <p-button styleClass="w-full" label="Account" icon="pi pi-user" class="bg-white" [rounded]="true" />
          <p-button styleClass="w-full" label="Settings" icon="pi pi-cog" class="bg-white" [rounded]="true" />
-         <p-button styleClass="w-full" label="Logout" icon="pi pi-sign-out" class="bg-white" [rounded]="true" />
+         <p-button styleClass="w-full" label="Logout" icon="pi pi-sign-out" class="bg-white" [rounded]="true" (onClick)="onLogout()" />
       </div>
    </p-sidebar>
    <p-sidebar class="relative" styleClass="w-screen max-w-30rem" [(visible)]="groupViewVisible" [position]="'right'"

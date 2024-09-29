@@ -9,6 +9,7 @@ using Microsoft.OpenApi.Models;
 using Sieve.Models;
 using Sieve.Services;
 using TaggyAppBackend.Api.AutoMapper;
+using TaggyAppBackend.Api.AutoMapper.ValueResolvers.Group;
 using TaggyAppBackend.Api.Filters;
 using TaggyAppBackend.Api.Handlers;
 using TaggyAppBackend.Api.Handlers.Interfaces;
@@ -47,12 +48,7 @@ builder.Services.AddScoped<IGroupUserService, GroupUserService>();
 builder.Services.AddScoped<ITagService, TagService>();
 
 builder.Services.AddAutoMapper(cfg => { cfg.AddProfile<DtoMappingProfile>(); });
-
-builder.Services.Configure<FormOptions>(options =>
-{
-    // Set the maximum size for form data (including files) in bytes
-    options.MultipartBodyLengthLimit = 10737418240; // 100 MB
-});
+builder.Services.AddScoped<CurrentUserGroupRole>();
 
 #endregion
 

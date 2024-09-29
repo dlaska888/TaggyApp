@@ -44,7 +44,7 @@ export class GroupStateService {
     }
   }
 
-  getGroup(): BehaviorSubject<GetGroupDto | null> {
+  getGroup$(): BehaviorSubject<GetGroupDto | null> {
     return this.group;
   }
 

@@ -1,0 +1,43 @@
+<div *ngIf="groupUsers" class="flex flex-column">
+   <div class="flex align-items-center gap-1">
+      <h3>Members</h3>
+      <p-button icon="pi pi-plus" styleClass="p-button-rounded p-button-text" (onClick)="formVisible = true" />
+   </div>
+   <div class="flex flex-column gap-2">
+      <div *ngFor="let groupUser of groupUsers" class="flex flex-column">
+         <div class="flex align-items-center h-3rem">
+            <div>
+               <h4 class="m-0 pr-3">{{groupUser.name}}</h4>
+               <p class="m-0">{{groupUser.role}}</p>
+            </div>
+            <div *ngIf="!isEditing(groupUser) && hasLowerRole(groupUser) && !isCurrentUser(groupUser)">
+               <p-button icon="pi pi-pencil" styleClass="p-0" [text]="true" [rounded]="true"
+                  (onClick)="onUserEdit(groupUser)" />
+               <p-button icon="pi pi-trash" styleClass="p-0" [text]="true" [rounded]="true"
+                  (onClick)="onUserRemove(groupUser)" />
+            </div>
+            <div *ngIf="isEditing(groupUser)" class="flex align-items-center gap-2">
+               <p-button icon="pi pi-check" styleClass="p-0" [text]="true" [rounded]="true"
+                  (onClick)="onUserEditSubmit()" />
+               <p-button icon="pi pi-times" styleClass="p-0" [text]="true" [rounded]="true"
+                  (onClick)="onUserEditCancel()" />
+            </div>
+         </div>
+         <p-dropdown *ngIf="isEditing(groupUser)" [options]="roleOptions" [(ngModel)]="selectedGroupUser!.role"
+            [style]="{'width':'100%'}" placeholder="Role">
+         </p-dropdown>
+      </div>
+
+   </div>
+</div>
+<p-dialog header="Add New Member" [modal]="true" [(visible)]="formVisible" [style]="{ width: '25rem' }">
+   <form [formGroup]="newGroupUserForm">
+      <div class="flex flex-column gap-4">
+         <input id="userName" formControlName="userName" placeholder="Username or Email" pInputText class="w-full" />
+         <div class="flex justify-content-end gap-2">
+            <p-button label="Cancel" (onClick)="formVisible = false"></p-button>
+            <p-button label="Add" (onClick)="onUserAddSubmit()" [disabled]="newGroupUserForm.invalid"></p-button>
+         </div>
+      </div>
+   </form>
+</p-dialog>

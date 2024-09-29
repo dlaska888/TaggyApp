@@ -1,15 +1,13 @@
 import { TaggyAppApiService } from './../../services/taggyAppApi.service';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import {
   SocialLoginModule,
-  SocialAuthServiceConfig,
   GoogleSigninButtonModule,
 } from '@abacritt/angularx-social-login';
-import { GoogleLoginProvider } from '@abacritt/angularx-social-login';
 import { SocialAuthService } from '@abacritt/angularx-social-login';
 import {
   FormControl,
@@ -18,15 +16,14 @@ import {
   Validators,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { ExternalAuthDto } from '../../models/dtos/auth/externalAuthDto';
-import { LocalStorageService } from '../../services/localStorageService';
 import { AuthService } from '../../services/authService';
 import { HttpResponse } from '@angular/common/http';
 import { TokenDto } from '../../models/dtos/auth/tokenDto';
-import { LocalStorageConstant } from '../../constants/localStorage.constant';
 import { Router, RouterModule } from '@angular/router';
 import { PathConstant } from '../../constants/path.constant';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 
+@UntilDestroy()
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -44,15 +41,8 @@ import { PathConstant } from '../../constants/path.constant';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
   pathConst = PathConstant;
-
-  constructor(
-    private api: TaggyAppApiService,
-    private socialAuthService: SocialAuthService,
-    private authService: AuthService,
-    private router: Router
-  ) {}
 
   loginForm = new FormGroup({
     userName: new FormControl(null, [
@@ -65,9 +55,16 @@ export class LoginComponent implements OnInit {
     ]),
   });
 
+  constructor(
+    private api: TaggyAppApiService,
+    private socialAuth: SocialAuthService,
+    private authService: AuthService,
+    private router: Router
+  ) {}
+
   ngOnInit() {
     this.tryNavigateToDashboard();
-    this.socialAuthService.authState.subscribe((user) => {
+    this.socialAuth.authState.pipe(untilDestroyed(this)).subscribe((user) => {
       if (!user) return;
       this.api
         .googleLogin({
@@ -83,6 +80,10 @@ export class LoginComponent implements OnInit {
           this.tryNavigateToDashboard();
         });
     });
+  }
+
+  ngOnDestroy() {
+    this.socialAuth.signOut();
   }
 
   onSubmit() {

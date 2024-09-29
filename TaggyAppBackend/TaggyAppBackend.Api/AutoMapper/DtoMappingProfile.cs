@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using TaggyAppBackend.Api.AutoMapper.ValueResolvers.Group;
 using TaggyAppBackend.Api.Models.Dtos.Account;
 using TaggyAppBackend.Api.Models.Dtos.File;
 using TaggyAppBackend.Api.Models.Dtos.Group;
@@ -23,8 +24,10 @@ public class DtoMappingProfile : Profile
             .ForMember(f => f.Tags, opt =>
                 opt.MapFrom((file, _, _, context) =>
                     file.Tags.Select(t => context.Mapper.Map<GetTagDto>(t))
-                ) 
-            );
+                )
+            )
+            .ForMember(g => g.CurrentUserRole,
+                opt => opt.MapFrom<CurrentUserGroupRole>());
         CreateMap<CreateGroupDto, Group>();
         CreateMap<UpdateGroupDto, Group>();
 

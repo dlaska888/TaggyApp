@@ -8,11 +8,11 @@ import { SidebarModule } from 'primeng/sidebar';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DomSanitizer } from '@angular/platform-browser';
-import { DataViewLayoutOptions, DataViewModule } from 'primeng/dataview';
+import { DataViewModule } from 'primeng/dataview';
 import { BadgeModule } from 'primeng/badge';
 import { SieveModelDto } from '../../models/dtos/sieveModelDto';
 import { FileSizePipe } from '../../pipes/file-size.pipe';
-import { MessageService, SelectItem } from 'primeng/api';
+import { SelectItem } from 'primeng/api';
 import { DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { MultiSelectModule } from 'primeng/multiselect';
@@ -24,11 +24,15 @@ import { GroupSelectComponent } from '../common/group/group-select/group-select.
 import { SkeletonModule } from 'primeng/skeleton';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { NgOptimizedImage } from '@angular/common';
-import { InputText, InputTextModule } from 'primeng/inputtext';
+import { InputTextModule } from 'primeng/inputtext';
 import { GroupInfoComponent } from '../common/group/group-info/group-info.component';
 import { UserStateService } from '../../services/userStateService';
 import { GroupStateService } from '../../services/groupStateService';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { Router } from '@angular/router';
+import { PathConstant } from '../../constants/path.constant';
 
+@UntilDestroy()
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -108,22 +112,9 @@ export class DashboardComponent implements OnInit {
     public sanitizer: DomSanitizer,
     private taggyApi: TaggyAppApiService,
     private userState: UserStateService,
-    private groupState: GroupStateService
-  ) {
-    this.userState.initUserState();
-    this.userState.getUser().subscribe((user) => {
-      if (user) {
-        this.groupState.initGroupState();
-      }
-    });
-    this.groupState.getGroup().subscribe((group) => {
-      if (group) {
-        this.selectedGroup = group;
-        this.refreshGroup();
-        this.menuBarVisible = false;
-      }
-    });
-  }
+    private groupState: GroupStateService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.pagedFiles = {
@@ -149,6 +140,25 @@ export class DashboardComponent implements OnInit {
       { label: 'Any', value: '@=' },
       { label: 'All', value: '==' },
     ];
+    this.userState.initUserState();
+    this.userState
+      .getUser$()
+      .pipe(untilDestroyed(this))
+      .subscribe((user) => {
+        if (user) {
+          this.groupState.initGroupState();
+        }
+      });
+    this.groupState
+      .getGroup$()
+      .pipe(untilDestroyed(this))
+      .subscribe((group) => {
+        if (group) {
+          this.selectedGroup = group;
+          this.refreshGroup();
+          this.menuBarVisible = false;
+        }
+      });
   }
 
   onFilesUploaded(): void {
@@ -187,6 +197,11 @@ export class DashboardComponent implements OnInit {
   onTagOperatorChange(event: DropdownChangeEvent) {
     this.selectedTagOperator = event.value;
     this.getFiles();
+  }
+
+  onLogout(): void {
+    this.userState.clearUser();
+    window.location.href = PathConstant.LOGIN;
   }
 
   private getFiles(): void {

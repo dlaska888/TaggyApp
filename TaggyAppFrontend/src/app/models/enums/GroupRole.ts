@@ -1,6 +1,6 @@
-export enum GroupRole {
-  Normal = 'Normal',
-  Moderator = 'Moderator',
-  Admin = 'Admin',
-  Owner = 'Owner',
+export const enum GroupRole {
+  Normal,
+  Moderator,
+  Admin,
+  Owner,
 }

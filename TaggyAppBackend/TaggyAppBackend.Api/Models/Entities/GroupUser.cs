@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Sieve.Attributes;
 using TaggyAppBackend.Api.Models.Entities.Master;
 using TaggyAppBackend.Api.Models.Enums;
 
@@ -15,5 +16,6 @@ public class GroupUser
     public string GroupId { get; set; }
     public virtual Group Group { get; set; } = null!;
     
+    [Sieve(CanFilter = true, CanSort = true)]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

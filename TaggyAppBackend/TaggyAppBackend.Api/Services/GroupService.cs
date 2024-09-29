@@ -1,8 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Sieve.Models;
-using TaggyAppBackend.Api.Exceptions;
-using TaggyAppBackend.Api.Exceptions.Service;
+
 using TaggyAppBackend.Api.Helpers.Interfaces;
 using TaggyAppBackend.Api.Models.Dtos;
 using TaggyAppBackend.Api.Models.Dtos.Group;

@@ -11,7 +11,7 @@
          <p-button icon="pi pi-times" styleClass="p-0" [text]="true" [rounded]="true" (onClick)="onCancel()" />
       </div>
    </div>
-   <div class="flex flex-column">
+   <div class="flex flex-column mb-3">
       <h3>General</h3>
       <div class="flex flex-column gap-2">
          <div *ngIf="!editing" class="flex gap-2">
@@ -36,13 +36,6 @@
          </div>
       </div>
    </div>
-   <div class="flex flex-column">
-      <h3>Members</h3>
-      <div class="flex flex-column gap-2">
-         <div class="flex flex-wrap gap-2">
-            <p *ngFor="let user of selectedGroup.users" class="m-0">{{user.name}}</p>
-         </div>
-      </div>
-   </div>
+   <group-members></group-members>
 </form>
 <p-confirmDialog />

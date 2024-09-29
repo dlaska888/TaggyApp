@@ -21,6 +21,7 @@
     "@angular/platform-server": "^18.2.0",
     "@angular/router": "^18.2.0",
     "@angular/service-worker": "^18.2.0",
+    "@ngneat/until-destroy": "^10.0.0",
     "@rxweb/reactive-form-validators": "^13.0.1",
     "angular-svg-round-progressbar": "^13.0.0",
     "jwt-decode": "^4.0.0",

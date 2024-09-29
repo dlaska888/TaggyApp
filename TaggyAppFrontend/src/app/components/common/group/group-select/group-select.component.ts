@@ -2,10 +2,6 @@ import { CommonModule } from '@angular/common';
 import {
   Component,
   OnInit,
-  Output,
-  EventEmitter,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
 } from '@angular/core';
 import {
   DropdownModule,
@@ -71,7 +67,7 @@ export class GroupSelectComponent implements OnInit {
     this.initNewGroupForm();
     this.initPagination();
     this.getGroups();
-    this.groupState.getGroup().subscribe((group) => {
+    this.groupState.getGroup$().subscribe((group) => {
       if (!group) return;
       this.selectedGroup = group;
       this.groupId = group.id;
