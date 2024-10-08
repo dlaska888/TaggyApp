@@ -7,6 +7,15 @@ on:
     - 'TaggyAppBackend/**'
     branches:
     - develop
+  pull_request:
+    paths:
+    - 'TaggyAppBackend/**'
+    branches:
+    - master
+
+env:
+  AZURE_WEBAPP_NAME: 'taggyapp'
+  AZURE_WEBAPP_PACKAGE_PATH: './TaggyAppBackend/publish'
 
 jobs:
   publish:
@@ -25,6 +34,16 @@ jobs:
         
       - name: Build
         run: dotnet build ./TaggyAppBackend/TaggyAppBackend.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test ./TaggyAppBackend/TaggyAppBackend.sln --no-build --verbosity normal
         
       - name: Publish
-        run: dotnet publish ./TaggyAppBackend/TaggyAppBackend.sln --configuration Release --no-build
+        run: dotnet publish ./TaggyAppBackend/TaggyAppBackend.sln --configuration Release --no-build --output '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
+
+      - name: Deployment
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_BACKEND_PUBLISH_PROFILE }}
+          package: "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
