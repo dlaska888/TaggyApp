@@ -14,7 +14,7 @@ on:
     - master
 
 env:
-  AZURE_WEBAPP_NAME: 'taggyapp'
+  AZURE_WEBAPP_NAME: 'taggy-app-backend'
   AZURE_WEBAPP_PACKAGE_PATH: './TaggyAppBackend/publish'
 
 jobs:
