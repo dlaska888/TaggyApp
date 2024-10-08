@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'TaggyAppBackend/**'
+    - 'TaggyAppBackend/**'
     branches:
-      - develop
+    - develop
 
 jobs:
   publish:
