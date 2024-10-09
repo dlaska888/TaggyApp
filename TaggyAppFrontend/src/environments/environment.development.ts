@@ -1,7 +1,7 @@
 export const environment = {
   production: false,
   taggyappApi: {
-    url: 'https://localhost:5262',
+    url: 'http://localhost:5262',
     fileSizeLimit: 10_737_418_240,
   },
   google: {
