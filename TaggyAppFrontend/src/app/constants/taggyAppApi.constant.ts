@@ -1,4 +1,4 @@
-import { environment } from "../../environments/environment.development";
+import { environment } from "../../environments/environment";
 
 export class TaggyAppApiConstant {
     public static readonly LOGIN = environment.taggyappApi.url + '/auth/login';
