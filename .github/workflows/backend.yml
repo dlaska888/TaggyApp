@@ -1,4 +1,4 @@
-name: Publish
+name: .NET Deploy
 
 on:
   workflow_dispatch:
