@@ -2,6 +2,7 @@ import {
   HttpClient,
   HttpContext,
   HttpEvent,
+  HttpHeaders,
   HttpParams,
   HttpResponse,
 } from '@angular/common/http';
@@ -210,6 +211,7 @@ export class TaggyAppApiService {
       {
         reportProgress: true,
         observe: 'events',
+        headers: new HttpHeaders({ 'ngsw-bypass': 'true' })
       }
     );
   }

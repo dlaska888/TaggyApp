@@ -1,0 +1,38 @@
+name: Angular Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop" ]
+
+jobs:
+  angular:
+    name: Angular Build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20]
+    defaults:
+      run:
+        working-directory: ./TaggyAppFrontend
+    steps:
+      - name: Checkout the source code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: ./TaggyAppFrontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test:ci
+
+      - name: Build
+        run: npm run build:ci
