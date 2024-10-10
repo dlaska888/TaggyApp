@@ -1,10 +1,8 @@
-.dashboard {
-  min-height: 100vh;
-  max-height: 100vh;
-  overflow-y: hide;
+.group-view {
+  height: 100%;
   position: relative;
 
-  .dashboard-content {
+  .group-view-content {
     display: flex;
     flex-direction: column;
     overflow-y: hidden;
@@ -48,10 +46,9 @@
   transform: translate(-50%, -50%);
 }
 
-:host ::ng-deep .dashboard {
-
-  .p-sidebar {
-    padding: 0;
-    max-height: 100vh;
+:host ::ng-deep .group-view {
+  .p-dataview .p-dataview-content {
+    max-height: calc(100vh - 10rem);
+    overflow-y: auto;
   }
 }

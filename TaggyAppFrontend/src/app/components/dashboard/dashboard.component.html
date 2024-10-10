@@ -1,124 +1,25 @@
 <div class="dashboard">
    <div class="dashboard-content">
-      <p-dataView #dv [value]="pagedFiles.items" [rows]="fileRows" [layout]="layout"
-         [emptyMessage]="loading ? ' ' : 'No data found'" class="flex-1">
-         <ng-template pTemplate="header">
-            <div class="flex flex-row flex-wrap justify-content-between gap-1 w-12">
-               <div class="flex align-items-center">
-                  <p-button icon="pi pi-bars" (onClick)="menuBarVisible = true"></p-button>
-               </div>
-               <div class="flex flex-1 justify-content-center">
-                  <p-button *ngIf="selectedGroup" icon="pi pi-filter" styleClass="p-0" [text]="true" [rounded]="true"
-                     (onClick)="op.toggle($event)">
-                     <p-overlayPanel #op header="Filter files" [style]="{ width: '100vw', maxWidth:'550px'}"
-                        [focusOnShow]="true">
-                        <div class="flex">
-                           <p-dropdown class="w-8" [options]="sortOptions" [showClear]="true" [checkmark]="true"
-                              (onChange)="onSortChange($event)" [style]="{'width':'100%'}" placeholder="Sort"
-                              styleClass="mb-2 md:mb-0" />
-                           <p-dropdown class="w-4" [options]="sortOperatorOptions" [style]="{'width':'100%'}"
-                              (onChange)="onSortOperatorChange($event)">
-                           </p-dropdown>
-                        </div>
-                        <div class="flex">
-                           <p-multiSelect class="w-8" [(ngModel)]="selectedTags" [options]="selectedGroup.tags"
-                              [showClear]="true" (onChange)="onTagsChange()" (onClear)="onTagsChange()"
-                              [style]="{'width':'100%'}" display="chip" optionLabel="name" optionValue="name"
-                              placeholder="Tags">
-                           </p-multiSelect>
-                           <p-dropdown class="w-4" [options]="tagOperatorOptions" [style]="{'width':'100%'}"
-                              (onChange)="onTagOperatorChange($event)">
-                           </p-dropdown>
-                        </div>
-                     </p-overlayPanel>
-                  </p-button>
-                  <input [(ngModel)]="nameQuery" class="w-full text-ellipsis"
-                     style="min-width: 150px; max-width: 500px;" [placeholder]="searchPlaceholder" pInputText />
-               </div>
-               <div class="flex align-items-center w-12 sm:w-9rem">
-                  <p-dataViewLayoutOptions />
-                  <p-button icon="pi pi-ellipsis-v" styleClass="p-0" [text]="true" [rounded]="true"
-                     (onClick)="groupViewVisible = true" />
-               </div>
-            </div>
-         </ng-template>
-         <ng-template pTemplate="list" let-file>
-            <div *ngIf="!loading; else fileLoading">
-               <div *ngFor="let file of pagedFiles?.items"
-                  class="p-card flex flex-column md:flex-row align-items-center p-2 gap-2"
-                  (click)="onFileSelected(file)">
-                  <div class="w-12 md:w-3">
-                     <h5 class="card-title text-ellipsis">{{ file.name }}</h5>
-                  </div>
-                  <div class="w-12 md:w-9 flex align-items-center gap-3">
-                     <div
-                        class="flex flex-grow-0 flex-shrink-0 align-items-center gap-2 w-6 overflow-x-auto overflow-y-hidden">
-                        <p-badge *ngFor="let tag of file.tags" [value]="tag.name"></p-badge>
-                     </div>
-                     <p class="w-3">{{ file.size | fileSize }}</p>
-                     <p class="w-3">{{ file.createdAt | date: 'short' }}</p>
-                  </div>
-               </div>
-            </div>
-            <ng-template #fileLoading>
-               <div *ngFor="let i of skeletonArray"
-                  class="p-card flex flex-column md:flex-row align-items-center p-2 gap-2">
-                  <div class="w-12 md:w-3">
-                     <h5>
-                        <p-skeleton width="100%"></p-skeleton>
-                     </h5>
-                  </div>
-                  <div class="w-12 md:w-9 flex align-items-center gap-3">
-                     <p-skeleton class="w-6" width="100%"></p-skeleton>
-                     <p-skeleton class="w-3" width="100%"></p-skeleton>
-                     <p-skeleton class="w-3" width="100%"></p-skeleton>
-                  </div>
-               </div>
-            </ng-template>
-         </ng-template>
-         <ng-template let-file pTemplate="grid" let-files>
-            <div class="grid grid-nogutter">
-               <div class="col-12 sm:col-6 md:col-4 xl:col-3 p-2" *ngFor="let file of files"
-                  (click)="onFileSelected(file)">
-                  <div class="image-container">
-                     <img class="border-round w-full h-full" [src]="file.url" [alt]="file.name" />
-                  </div>
-               </div>
-            </div>
-         </ng-template>
-      </p-dataView>
-      <p-paginator *ngIf="pagedFiles" [rows]="fileRows" [rowsPerPageOptions]="fileRowsOptions"
-         [totalRecords]="pagedFiles.totalItems" (onPageChange)="onPageChange($event)" />
+      <group-view (menuOpenChange)="menuBarVisible = true" />
    </div>
-   <p-button label="Add" icon="pi pi-plus" class="add-button" [rounded]="true" [raised]="true"
-      (onClick)="fileUploadVisible = !fileUploadVisible" />
    <p-sidebar [(visible)]="menuBarVisible" styleClass="w-screen max-w-30rem">
       <ng-template pTemplate="header">
          <h3 class="m-0">Username</h3>
       </ng-template>
       <div class="flex flex-column gap-4">
          <group-select />
-         <p-button styleClass="w-full" label="Account" icon="pi pi-user" class="bg-white" [rounded]="true" />
-         <p-button styleClass="w-full" label="Settings" icon="pi pi-cog" class="bg-white" [rounded]="true" />
-         <p-button styleClass="w-full" label="Logout" icon="pi pi-sign-out" class="bg-white" [rounded]="true" (onClick)="onLogout()" />
+         <p-button styleClass="w-full" label="Settings" icon="pi pi-cog" class="bg-white" [rounded]="true"
+            (onClick)="settingsVisible = true" />
+         <p-button styleClass="w-full" label="Logout" icon="pi pi-sign-out" class="bg-white" [rounded]="true"
+            (onClick)="onLogout()" />
       </div>
    </p-sidebar>
-   <p-sidebar class="relative" styleClass="w-screen max-w-30rem" [(visible)]="groupViewVisible" [position]="'right'"
-      [transitionOptions]="'200ms'">
-      <ng-template pTemplate="headless">
-         <group-info />
-         <p-button icon="pi pi-times" class="info-close-button mt-2" [text]="true" [rounded]="true"
-            (onClick)="groupViewVisible = false"></p-button>
+   <p-sidebar [(visible)]="settingsVisible" styleClass="w-screen max-w-30rem">
+      <ng-template pTemplate="header">
+         <h3 class="m-0">Settings</h3>
       </ng-template>
+      <div class="flex flex-column gap-4">
+         <settings />
+      </div>
    </p-sidebar>
-   <p-sidebar class="relative" appendTo="body" [(visible)]="fileUploadVisible" [fullScreen]="true" [position]="'bottom'"
-      [transitionOptions]="'200ms'">
-      <ng-template pTemplate="headless">
-         <file-upload [group]="selectedGroup" (onFilesUploaded)="onFilesUploaded()"></file-upload>
-         <p-button icon="pi pi-angle-double-down" class="upload-close-button" [rounded]="true"
-            (onClick)="fileUploadVisible = false"></p-button>
-      </ng-template>
-   </p-sidebar>
-   <file-view-dialog *ngIf="selectedFile" [file]="selectedFile" [(visible)]="fileViewVisible"
-      (fileDelete)="onFileDeleted()" />
 </div>
