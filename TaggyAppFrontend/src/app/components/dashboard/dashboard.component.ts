@@ -10,6 +10,7 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { PathConstant } from '../../constants/path.constant';
 import { GroupViewComponent } from '../common/group/group-view/group-view.component';
 import { SettingsComponent } from '../common/dashboard/settings/settings.component';
+import { MessageService } from 'primeng/api';
 
 @UntilDestroy()
 @Component({
@@ -34,7 +35,8 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     private userState: UserStateService,
-    private groupState: GroupStateService
+    private groupState: GroupStateService,
+    private messageService: MessageService
   ) {}
 
   ngOnInit(): void {
