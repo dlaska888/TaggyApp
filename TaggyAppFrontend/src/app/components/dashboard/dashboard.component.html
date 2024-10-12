@@ -9,7 +9,7 @@
             <form class="p-input-icon-right">
                <span class="p-input-icon-left">
                   <i class="pi pi-search"></i>
-                  <input type="text" pInputText placeholder="Search" [formControl]="nameQuery" >
+                  <input type="text" pInputText placeholder="Search" [formControl]="nameQuery">
                </span>
             </form>
             <p-button [text]="true" [severity]="'secondary'" (onClick)="menuBarVisible = false" icon="pi pi-times" />
@@ -17,7 +17,15 @@
          <p-menu #menu [model]="items" [popup]="true" />
       </ng-template>
       <div class="group-select">
-         <group-select *ngIf="initialMenuBarVisible" [groupNameQuery]="nameQuery.getRawValue()" />
+         <group-select *ngIf="reloadGroups !== null" [reloadGroups]="reloadGroups!" [groupNameQuery]="nameQuery.getRawValue()" />
+      </div>
+   </p-sidebar>
+   <p-sidebar [(visible)]="addGroupVisible" styleClass="w-screen max-w-30rem">
+      <ng-template pTemplate="header">
+         <h3 class="m-0">Add Group</h3>
+      </ng-template>
+      <div class="flex flex-column gap-4">
+         <add-group (formSubmit)="onFormSubmitted()" />
       </div>
    </p-sidebar>
    <p-sidebar [(visible)]="settingsVisible" styleClass="w-screen max-w-30rem">

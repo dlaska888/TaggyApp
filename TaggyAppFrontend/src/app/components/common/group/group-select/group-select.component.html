@@ -1,5 +1,5 @@
-<div #infiniteScrollParentElem infiniteScroll [infiniteScrollDistance]="2" [infiniteScrollThrottle]="500"
-   [scrollWindow]="false" (scrolled)="onScrolled()" class="overflow-y-auto h-full">
+<div *ngIf="pagedGroups.items.length > 0" #infiniteScrollParentElem infiniteScroll [infiniteScrollDistance]="2"
+   [infiniteScrollThrottle]="500" [scrollWindow]="false" (scrolled)="onScrolled()" class="overflow-y-auto h-full">
    <div #infiniteScrollChildElem *ngIf="pagedGroups" class="flex flex-column p-2 gap-2">
       <div *ngFor="let group of pagedGroups.items" (click)="onChange(group)" class="p-card p-3"
          [ngClass]="{ 'bg-primary': selectedGroup?.id === group.id }">
@@ -10,16 +10,6 @@
       <p-skeleton *ngFor="let i of skeletonArray" height="3rem" width="100%"></p-skeleton>
    </div>
 </div>
-<p-button *ngIf="!selectedGroup" icon="pi pi-plus" label="Add group" (onClick)="formVisible = true"></p-button>
-<p-dialog header="Add New Group" [modal]="true" [(visible)]="formVisible" [style]="{ width: '25rem' }">
-   <form [formGroup]="newGroupForm">
-      <div class="flex flex-column gap-4">
-         <input id="name" formControlName="name" placeholder="Name" pInputText class="w-full" />
-         <input id="description" formControlName="description" placeholder="Description" pInputText class="w-full" />
-         <div class="flex justify-content-end gap-2">
-            <p-button label="Cancel" (onClick)="formVisible = false"></p-button>
-            <p-button type="submit" label="Add" (onClick)="onSubmit()" [disabled]="newGroupForm.invalid"></p-button>
-         </div>
-      </div>
-   </form>
-</p-dialog>
+<h3 *ngIf="pagedGroups.items.length === 0" class="text-center">
+   Add your first group
+</h3>

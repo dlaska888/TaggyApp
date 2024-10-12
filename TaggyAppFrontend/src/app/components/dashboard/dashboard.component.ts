@@ -15,6 +15,7 @@ import { GetAccountDto } from '../../models/dtos/account/getAccountDto';
 import { MenuModule } from 'primeng/menu';
 import { InputTextModule } from 'primeng/inputtext';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AddGroupComponent } from '../common/dashboard/add-group/add-group.component';
 
 @UntilDestroy()
 @Component({
@@ -29,7 +30,8 @@ import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
     SettingsComponent,
     MenuModule,
     InputTextModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    AddGroupComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
@@ -37,11 +39,15 @@ import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 export class DashboardComponent implements OnInit {
   user!: GetAccountDto;
   selectedGroup!: GetGroupDto;
+  nameQuery: FormControl = new FormControl('', [
+    Validators.minLength(3),
+    Validators.maxLength(255),
+  ]);
   loading: boolean = true;
-  nameQuery: FormControl = new FormControl('', [Validators.minLength(3), Validators.maxLength(255)]);
 
-  initialMenuBarVisible: boolean = false;
+  reloadGroups: boolean | null = null;
   menuBarVisible: boolean = false;
+  addGroupVisible: boolean = false;
   settingsVisible: boolean = false;
 
   items: MenuItem[] = [];
@@ -70,8 +76,16 @@ export class DashboardComponent implements OnInit {
           this.menuBarVisible = false;
           this.selectedGroup = group;
         }
+        if (!group && this.selectedGroup) {
+          this.reloadGroups = !this.reloadGroups;
+        }
       });
     this.items = [
+      {
+        label: 'Add Group',
+        icon: 'pi pi-plus',
+        command: () => this.onAddGroup(),
+      },
       {
         label: 'Settings',
         icon: 'pi pi-cog',
@@ -86,15 +100,24 @@ export class DashboardComponent implements OnInit {
   }
 
   onMenuOpen(): void {
-    if(!this.initialMenuBarVisible) this.initialMenuBarVisible = true;
+    if (this.reloadGroups === null) this.reloadGroups = true;
     this.menuBarVisible = !this.menuBarVisible;
   }
 
-  onSettings(): void {
+  onFormSubmitted(): void {
+    this.addGroupVisible = false;
+    this.reloadGroups = !this.reloadGroups;
+  }
+
+  private onAddGroup(): void {
+    this.addGroupVisible = true;
+  }
+
+  private onSettings(): void {
     this.settingsVisible = true;
   }
 
-  onLogout(): void {
+  private onLogout(): void {
     this.userState.clearUser();
     window.location.href = PathConstant.LOGIN;
   }

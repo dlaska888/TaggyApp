@@ -11,7 +11,7 @@
     height: 100vh;
   }
 
-  .group-select{
+  .group-select {
     height: calc(100vh - 86px);
   }
 
@@ -58,7 +58,12 @@
     max-height: 100vh;
   }
 
-  .menu-sidebar .p-sidebar-content{
+  .menu-sidebar .p-sidebar-header {
+    padding: 0.5rem;
+    padding-top: 1rem;
+  }
+
+  .menu-sidebar .p-sidebar-content {
     padding: 0;
   }
 }

@@ -44,21 +44,20 @@ import { SkeletonModule } from 'primeng/skeleton';
   styleUrl: './group-select.component.scss',
 })
 export class GroupSelectComponent implements OnInit, OnChanges {
-  newGroup!: CreateGroupDto;
-  newGroupForm!: FormGroup;
-  formVisible: boolean = false;
-
   selectedGroup?: GetGroupDto;
   pagedGroups!: PagedResults<GetGroupDto>;
   page: number = 1;
   rows: number = 20;
   loading: boolean = false;
-  searchTimeout: any;
+  groupTimeout: any;
 
   skeletonArray = Array(this.rows);
 
   @Input()
   groupNameQuery?: string;
+
+  @Input()
+  reloadGroups!: boolean;
 
   @ViewChild('infiniteScrollParentElem')
   infiniteScrollParentElem!: ElementRef;
@@ -67,12 +66,10 @@ export class GroupSelectComponent implements OnInit, OnChanges {
 
   constructor(
     private taggyAppApiService: TaggyAppApiService,
-    private fb: RxFormBuilder,
     private groupState: GroupStateService
   ) {}
 
   ngOnInit(): void {
-    this.initNewGroupForm();
     this.initPagination();
     this.onScrolled();
     this.groupState.getGroup$().subscribe((group) => {
@@ -86,26 +83,15 @@ export class GroupSelectComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['groupNameQuery'].previousValue === undefined) return;
-    clearTimeout(this.searchTimeout);
-    this.searchTimeout = setTimeout(() => {
+    console.log(changes);
+    if (changes['groupNameQuery']?.firstChange) return;
+    clearTimeout(this.groupTimeout);
+    this.groupTimeout = setTimeout(() => {
       if (!this.loading) {
         this.initPagination();
         this.onScrolled();
       }
     }, 500);
-  }
-
-  onSubmit(): void {
-    this.taggyAppApiService.createGroup(this.newGroup).subscribe((response) => {
-      if (response.ok) {
-        this.formVisible = false;
-        this.groupState.setGroup(response.body!);
-        this.initNewGroupForm();
-        this.initPagination();
-        this.onScrolled();
-      }
-    });
   }
 
   onChange(event: GetGroupDto): void {
@@ -120,11 +106,6 @@ export class GroupSelectComponent implements OnInit, OnChanges {
       return;
     this.getGroups();
     this.page += 1;
-  }
-
-  private initNewGroupForm() {
-    this.newGroup = new CreateGroupDto();
-    this.newGroupForm = this.fb.formGroup(this.newGroup);
   }
 
   private initPagination(): void {
