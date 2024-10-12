@@ -17,6 +17,8 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { SieveModelDto } from '../../../../models/dtos/sieveModelDto';
 import { ConfirmationService } from 'primeng/api';
+import { ScrollerLazyLoadEvent } from 'primeng/scroller';
+import { PagedResults } from '../../../../models/dtos/pagedResults';
 
 @Component({
   selector: 'group-members',
@@ -36,7 +38,6 @@ import { ConfirmationService } from 'primeng/api';
 export class GroupMembersComponent implements OnInit {
   selectedGroup!: GetGroupDto;
   selectedGroupUser: GetGroupUserDto | null = null;
-  groupUsers!: GetGroupUserDto[];
   authUser!: GetAccountDto;
 
   newGroupUser!: CreateGroupUserDto;
@@ -51,6 +52,10 @@ export class GroupMembersComponent implements OnInit {
     user.role < this.selectedGroup.currentUserRole;
   isCurrentUser = (user: GetGroupUserDto): boolean =>
     user.userId === this.authUser.id;
+  isSameRole = (user: GetGroupUserDto): boolean =>
+    user.role === this.editGroupUser!.role;
+  hasMoreData = (): boolean =>
+    this.pagedGroupUsers.items.length < this.pagedGroupUsers.totalItems;
 
   roleOptions = [
     { label: this.roleToLabel(GroupRole.Normal), value: GroupRole.Normal },
@@ -61,6 +66,11 @@ export class GroupMembersComponent implements OnInit {
     { label: this.roleToLabel(GroupRole.Admin), value: GroupRole.Admin },
     { label: this.roleToLabel(GroupRole.Owner), value: GroupRole.Owner },
   ];
+
+  pagedGroupUsers!: PagedResults<GetGroupUserDto>;
+  page: number = 1;
+  rows: number = 20;
+  loading: boolean = false;
 
   constructor(
     private groupState: GroupStateService,
@@ -79,7 +89,9 @@ export class GroupMembersComponent implements OnInit {
         if (!group) return;
         this.selectedGroup = group;
         this.initRoleOptions();
-        this.refreshGroupUsers();
+        this.initNewGroupUserForm();
+        this.initPagination();
+        this.getGroupUsers();
       });
     });
   }
@@ -87,8 +99,9 @@ export class GroupMembersComponent implements OnInit {
   onUserAddSubmit() {
     this.api
       .createGroupUser(this.selectedGroup.id, this.newGroupUser)
-      .subscribe((_) => {
-        this.refreshGroupUsers();
+      .subscribe((response) => {
+        if (!response.ok) return;
+        this.pagedGroupUsers.items.push(response.body!);
         this.initNewGroupUserForm();
         this.formVisible = false;
       });
@@ -110,8 +123,12 @@ export class GroupMembersComponent implements OnInit {
         this.selectedGroupUser!.userId,
         this.editGroupUser
       )
-      .subscribe((_) => {
-        this.refreshGroupUsers();
+      .subscribe((response) => {
+        this.selectedGroupUser = null;
+        this.pagedGroupUsers.items.forEach((gu) => {
+          if (gu.userId === response.body!.userId)
+            Object.assign(gu, response.body!);
+        });
       });
   }
 
@@ -132,8 +149,11 @@ export class GroupMembersComponent implements OnInit {
       accept: () => {
         this.api
           .deleteGroupUser(this.selectedGroup.id, groupUser.userId)
-          .subscribe((_) => {
-            this.refreshGroupUsers();
+          .subscribe((response) => {
+            if (!response.ok) return;
+            this.pagedGroupUsers.items = this.pagedGroupUsers.items.filter(
+              (gu) => gu.userId !== groupUser.userId
+            );
           });
       },
     });
@@ -152,17 +172,26 @@ export class GroupMembersComponent implements OnInit {
     }
   }
 
-  private refreshGroupUsers() {
-    const query = new SieveModelDto();
-    query.pageSize = 100;
-    query.page = 1;
-    query.sorts = '-role';
+  onMoreGroupUsers(): void {
+    this.page += 1;
+    this.getGroupUsers();
+  }
+
+  private getGroupUsers() {
+    const query = new SieveModelDto(this.page, this.rows, '-role');
+    this.loading = true;
     this.api
       .getGroupUsers(this.selectedGroup.id, query)
       .subscribe((response) => {
-        this.groupUsers = response.body!.items;
+        if (!response.ok) return;
+        const oldItems = this.pagedGroupUsers.items;
+        this.pagedGroupUsers = response.body!;
+        this.pagedGroupUsers.items = [
+          ...oldItems,
+          ...this.pagedGroupUsers.items,
+        ];
+        this.loading = false;
       });
-    this.selectedGroupUser = null;
   }
 
   private initRoleOptions() {
@@ -174,5 +203,16 @@ export class GroupMembersComponent implements OnInit {
   private initNewGroupUserForm() {
     this.newGroupUser = new CreateGroupUserDto();
     this.newGroupUserForm = this.fb.formGroup(this.newGroupUser);
+  }
+
+  private initPagination(): void {
+    this.page = 1;
+    this.pagedGroupUsers = {
+      pageNum: this.page,
+      pageSize: this.rows,
+      totalItems: 0,
+      totalPages: 0,
+      items: [],
+    };
   }
 }

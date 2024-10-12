@@ -21,7 +21,6 @@ import { SieveModelDto } from "../../../../models/dtos/sieveModelDto";
 import { FileSizePipe } from "../../../../pipes/file-size.pipe";
 import { GroupStateService } from "../../../../services/groupStateService";
 import { TaggyAppApiService } from "../../../../services/taggyAppApi.service";
-import { UserStateService } from "../../../../services/userStateService";
 import { FileUploadComponent } from "../../file/file-upload/file-upload.component";
 import { FileViewDialogComponent } from "../../file/file-view-dialog/file-view-dialog.component";
 import { TagAutocompleteComponent } from "../../tag-autocomplete/tag-autocomplete.component";
@@ -109,7 +108,6 @@ export class GroupViewComponent implements OnInit {
 
   constructor(
     private taggyApi: TaggyAppApiService,
-    private userState: UserStateService,
     private groupState: GroupStateService,
   ) {}
 
@@ -137,15 +135,6 @@ export class GroupViewComponent implements OnInit {
       { label: 'Any', value: '@=' },
       { label: 'All', value: '==' },
     ];
-    this.userState.initUserState();
-    this.userState
-      .getUser$()
-      .pipe(untilDestroyed(this))
-      .subscribe((user) => {
-        if (user) {
-          this.groupState.initGroupState();
-        }
-      });
     this.groupState
       .getGroup$()
       .pipe(untilDestroyed(this))
@@ -170,8 +159,12 @@ export class GroupViewComponent implements OnInit {
     this.fileViewVisible = true;
   }
 
+  onFileChanged(): void {
+    this.getFiles();
+  }
+
   onFileDeleted(): void {
-    this.refreshGroup();
+    this.getFiles();
   }
 
   onPageChange(event: PaginatorState) {

@@ -10,7 +10,11 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { PathConstant } from '../../constants/path.constant';
 import { GroupViewComponent } from '../common/group/group-view/group-view.component';
 import { SettingsComponent } from '../common/dashboard/settings/settings.component';
-import { MessageService } from 'primeng/api';
+import { MenuItem, MessageService } from 'primeng/api';
+import { GetAccountDto } from '../../models/dtos/account/getAccountDto';
+import { MenuModule } from 'primeng/menu';
+import { InputTextModule } from 'primeng/inputtext';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @UntilDestroy()
 @Component({
@@ -23,20 +27,28 @@ import { MessageService } from 'primeng/api';
     GroupSelectComponent,
     GroupViewComponent,
     SettingsComponent,
+    MenuModule,
+    InputTextModule,
+    ReactiveFormsModule
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent implements OnInit {
+  user!: GetAccountDto;
   selectedGroup!: GetGroupDto;
+  loading: boolean = true;
+  nameQuery: FormControl = new FormControl('', [Validators.minLength(3), Validators.maxLength(255)]);
+
+  initialMenuBarVisible: boolean = false;
   menuBarVisible: boolean = false;
   settingsVisible: boolean = false;
-  loading: boolean = true;
+
+  items: MenuItem[] = [];
 
   constructor(
     private userState: UserStateService,
-    private groupState: GroupStateService,
-    private messageService: MessageService
+    private groupState: GroupStateService
   ) {}
 
   ngOnInit(): void {
@@ -46,6 +58,7 @@ export class DashboardComponent implements OnInit {
       .pipe(untilDestroyed(this))
       .subscribe((user) => {
         if (user) {
+          this.user = user;
           this.groupState.initGroupState();
         }
       });
@@ -58,11 +71,27 @@ export class DashboardComponent implements OnInit {
           this.selectedGroup = group;
         }
       });
+    this.items = [
+      {
+        label: 'Settings',
+        icon: 'pi pi-cog',
+        command: () => this.onSettings(),
+      },
+      {
+        label: 'Logout',
+        icon: 'pi pi-sign-out',
+        command: () => this.onLogout(),
+      },
+    ];
+  }
+
+  onMenuOpen(): void {
+    if(!this.initialMenuBarVisible) this.initialMenuBarVisible = true;
+    this.menuBarVisible = !this.menuBarVisible;
   }
 
   onSettings(): void {
-    this.groupState.removeGroup();
-    this.menuBarVisible = false;
+    this.settingsVisible = true;
   }
 
   onLogout(): void {

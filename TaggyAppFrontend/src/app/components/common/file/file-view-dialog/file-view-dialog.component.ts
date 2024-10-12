@@ -29,6 +29,7 @@ export class FileViewDialogComponent implements OnInit {
   @Input() visible: boolean = false;
   @Output() visibleChange = new EventEmitter<boolean>();
   @Input() file!: GetFileDto;
+  @Output() fileChange = new EventEmitter<void>();
   @Output() fileDelete = new EventEmitter<void>();
 
   supportedFileTypes: string[] = ['image', 'video', 'audio'];
@@ -53,6 +54,10 @@ export class FileViewDialogComponent implements OnInit {
         target: '_self',
       },
     ];
+  }
+
+  onFileChanged() {
+    this.fileChange.emit();
   }
 
   onFileDeleted() {

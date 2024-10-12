@@ -11,6 +11,10 @@
     height: 100vh;
   }
 
+  .group-select{
+    height: calc(100vh - 86px);
+  }
+
   .add-button {
     max-height: 100vh;
     position: absolute;
@@ -49,9 +53,12 @@
 }
 
 :host ::ng-deep .dashboard {
-
   .p-sidebar {
     padding: 0;
     max-height: 100vh;
+  }
+
+  .menu-sidebar .p-sidebar-content{
+    padding: 0;
   }
 }

@@ -1,13 +1,16 @@
+<div #infiniteScrollParentElem infiniteScroll [infiniteScrollDistance]="2" [infiniteScrollThrottle]="500"
+   [scrollWindow]="false" (scrolled)="onScrolled()" class="overflow-y-auto h-full">
+   <div #infiniteScrollChildElem *ngIf="pagedGroups" class="flex flex-column p-2 gap-2">
+      <div *ngFor="let group of pagedGroups.items" (click)="onChange(group)" class="p-card p-3"
+         [ngClass]="{ 'bg-primary': selectedGroup?.id === group.id }">
+         <p class="m-0">{{group.name}}</p>
+      </div>
+   </div>
+   <div *ngIf="loading" class="flex flex-column gap-2 px-2">
+      <p-skeleton *ngFor="let i of skeletonArray" height="3rem" width="100%"></p-skeleton>
+   </div>
+</div>
 <p-button *ngIf="!selectedGroup" icon="pi pi-plus" label="Add group" (onClick)="formVisible = true"></p-button>
-<p-dropdown *ngIf="selectedGroup && pagedGroups" [(ngModel)]="groupId" [options]="pagedGroups.items"
-   [filter]="true" [lazy]="true" [virtualScroll]="this.pagedGroups.pageNum !== this.pagedGroups.totalPages"
-   [virtualScrollItemSize]="rows" [virtualScrollOptions]="options" [style]="{'width':'100%'}"
-   (onLazyLoad)="onLazyLoad($event)" (onChange)="onChange($event)" optionLabel="name" optionValue="id"
-   placeholder="Group" inputId="group-select">
-   <ng-template pTemplate="filter">
-      <p-button icon="pi pi-plus" label="Add group" (onClick)="formVisible = true"></p-button>
-   </ng-template>
-</p-dropdown>
 <p-dialog header="Add New Group" [modal]="true" [(visible)]="formVisible" [style]="{ width: '25rem' }">
    <form [formGroup]="newGroupForm">
       <div class="flex flex-column gap-4">

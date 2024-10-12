@@ -107,6 +107,6 @@
             (onClick)="fileUploadVisible = false"></p-button>
       </ng-template>
    </p-sidebar>
-   <file-view-dialog *ngIf="selectedFile" [file]="selectedFile" [(visible)]="fileViewVisible"
+   <file-view-dialog *ngIf="selectedFile" [file]="selectedFile" [(visible)]="fileViewVisible" (fileChange)="onFileChanged()"
       (fileDelete)="onFileDeleted()" />
 </div>

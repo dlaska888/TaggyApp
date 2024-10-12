@@ -1,17 +1,23 @@
 <div class="dashboard">
    <div class="dashboard-content">
-      <group-view (menuOpenChange)="menuBarVisible = true" />
+      <group-view (menuOpenChange)="onMenuOpen()" />
    </div>
-   <p-sidebar [(visible)]="menuBarVisible" styleClass="w-screen max-w-30rem">
+   <p-sidebar [(visible)]="menuBarVisible" [showCloseIcon]="false" styleClass="menu-sidebar w-screen max-w-30rem p-0">
       <ng-template pTemplate="header">
-         <h3 class="m-0">Username</h3>
+         <div class="card flex-1 flex justify-content-between">
+            <p-button [text]="true" [severity]="'secondary'" (onClick)="menu.toggle($event)" icon="pi pi-bars" />
+            <form class="p-input-icon-right">
+               <span class="p-input-icon-left">
+                  <i class="pi pi-search"></i>
+                  <input type="text" pInputText placeholder="Search" [formControl]="nameQuery" >
+               </span>
+            </form>
+            <p-button [text]="true" [severity]="'secondary'" (onClick)="menuBarVisible = false" icon="pi pi-times" />
+         </div>
+         <p-menu #menu [model]="items" [popup]="true" />
       </ng-template>
-      <div class="flex flex-column gap-4">
-         <group-select />
-         <p-button styleClass="w-full" label="Settings" icon="pi pi-cog" class="bg-white" [rounded]="true"
-            (onClick)="settingsVisible = true" />
-         <p-button styleClass="w-full" label="Logout" icon="pi pi-sign-out" class="bg-white" [rounded]="true"
-            (onClick)="onLogout()" />
+      <div class="group-select">
+         <group-select *ngIf="initialMenuBarVisible" [groupNameQuery]="nameQuery.getRawValue()" />
       </div>
    </p-sidebar>
    <p-sidebar [(visible)]="settingsVisible" styleClass="w-screen max-w-30rem">
@@ -21,6 +27,5 @@
       <div class="flex flex-column gap-4">
          <settings />
       </div>
-      <p-button class="absolute" icon="pi pi-plus" label="Add group"></p-button>
    </p-sidebar>
 </div>
