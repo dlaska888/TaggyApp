@@ -1,15 +1,12 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Sieve.Models;
-using TaggyAppBackend.Api.Exceptions;
 using TaggyAppBackend.Api.Exceptions.Repo;
 using TaggyAppBackend.Api.Exceptions.Service;
 using TaggyAppBackend.Api.Helpers.Interfaces;
 using TaggyAppBackend.Api.Models.Dtos;
 using TaggyAppBackend.Api.Models.Dtos.File;
-using TaggyAppBackend.Api.Models.Dtos.Group;
 using TaggyAppBackend.Api.Models.Dtos.Tag;
 using TaggyAppBackend.Api.Models.Entities;
 using TaggyAppBackend.Api.Models.Entities.Master;
@@ -67,6 +64,9 @@ public class FileService(
 
     public async Task<GetFileDto> Create(string groupId, CreateFileDto dto, Stream stream)
     {
+        if (await FindFileByName(groupId, dto.UntrustedName) is not null)
+            throw new BadRequestException($"{dto.UntrustedName} already exists");
+        
         await groupUserService.VerifyGroupAccess(groupId);
 
         var file = mapper.Map<File>(dto);
@@ -95,8 +95,10 @@ public class FileService(
 
     public async Task<GetFileDto> Update(string groupId, string fileId, UpdateFileDto dto)
     {
+        if (await FindFileByName(groupId, dto.Name) is not null)
+            throw new BadRequestException($"{dto.Name} already exists");
+        
         var file = await FindFile(groupId, fileId);
-
         if (file.CreatorId != authContext.GetUserId())
             await groupUserService.VerifyGroupAccess(file.GroupId, GroupRole.Admin);
 
@@ -200,6 +202,12 @@ public class FileService(
             throw new NotFoundException("File not found");
 
         return file;
+    }
+
+    private async Task<File?> FindFileByName(string groupId, string untrustedName)
+    {
+        return await dbContext.Files
+            .FirstOrDefaultAsync(f => f.GroupId == groupId && f.UntrustedName == untrustedName);
     }
 
     private async Task<Group> FindGroup(string groupId)

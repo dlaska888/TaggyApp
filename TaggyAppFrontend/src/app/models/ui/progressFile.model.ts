@@ -12,5 +12,6 @@ export class ProgressFile {
         this.browserFile = file;
         this.progress = 0;
         this.createFileDto = new CreateFileDto();
+        this.createFileDto.untrustedName = this.browserFile.name;
     }
 }

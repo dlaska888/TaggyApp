@@ -43,13 +43,12 @@ export class TagAutocompleteComponent {
     );
   }
 
-  onTagKeyUp(event: KeyboardEvent) {
-    if (event.key == ' ' || event.code == 'Space') {
-      let tokenInput = event.srcElement as any;
-      if (tokenInput.value) {
-        this.addTag(tokenInput.value.replace(' ', ''));
-        tokenInput.value = '';
-      }
+  onTagInput(event: Event) {
+    const tokenInput = event.target as HTMLInputElement;
+    const value = tokenInput.value;
+    if (value.includes(' ')) {
+      this.addTag(value.trim());
+      tokenInput.value = '';
     }
   }
 
@@ -64,6 +63,7 @@ export class TagAutocompleteComponent {
   }
 
   private addTag(name: string) {
+    if(this.tags.find(t => t.name === name)) return;
     this.tags.push({ name: name });
     this.validateTags();
     this.tagsChange.emit(this.tags);

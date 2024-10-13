@@ -20,13 +20,8 @@ export function errorMessageInterceptorFn(
       if (response.status === 400) {
         messageService.add({
           severity: 'error',
-          summary: 'Validation Error',
           detail: response.error.errors
-            ? Object.keys(response.error.errors)
-                .map(
-                  (key) => `${key}: ${response.error.errors[key].join(', ')}`
-                )
-                .join('; ')
+            ? Object.values(response.error.errors)[0] as string
             : 'An error occurred while processing your request',
           life: UIConfigConstant.ERROR_MESSAGE_LIFE,
         });

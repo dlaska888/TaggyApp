@@ -21,6 +21,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         builder.Entity<Tag>()
             .HasIndex(t => new { t.Name, t.GroupId })
             .IsUnique();
+        builder.Entity<File>()
+            .HasIndex(t => new { t.UntrustedName, t.GroupId })
+            .IsUnique();
     }
 
 }
