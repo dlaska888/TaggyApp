@@ -234,6 +234,11 @@ public class FileService(
         var mapped = mapper.Map<GetFileDto>(file);
         mapped.Url = await blobRepo.GetBlobDownloadPath(file.TrustedName, _blobOptionsValue.Container);
         mapped.Tags = file.Tags.OrderBy(t => t.Name).Select(mapper.Map<GetTagDto>).ToList();
+        if (file.ContentType.StartsWith("image/"))
+            mapped.ThumbnailUrl =
+                await blobRepo.GetBlobDownloadPath($"s-{Path.GetFileNameWithoutExtension(file.TrustedName)}.jpg",
+                    _blobOptionsValue.ThumbnailContainer);
+
         return mapped;
     }
 

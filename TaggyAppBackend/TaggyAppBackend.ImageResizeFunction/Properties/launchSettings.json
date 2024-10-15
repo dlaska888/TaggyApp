@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "TaggyAppBackend.ImageResizeFunction": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7063 --verbose",
+      "launchBrowser": false
+    }
+  }
+}

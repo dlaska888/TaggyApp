@@ -81,7 +81,7 @@
                <div class="col-12 sm:col-6 md:col-4 xl:col-3 p-2" *ngFor="let file of files"
                   (click)="onFileSelected(file)">
                   <div class="image-container">
-                     <img class="border-round w-full h-full" [src]="file.url" [alt]="file.name" />
+                     <img class="border-round w-full h-full" [src]="file.thumbnailUrl" [alt]="file.name" />
                   </div>
                </div>
             </div>
