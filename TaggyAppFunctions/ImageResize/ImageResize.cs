@@ -1,9 +1,9 @@
-using Imageflow.Fluent;
+﻿using Imageflow.Fluent;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
-namespace TaggyAppBackend.ImageResizeFunction;
+namespace ImageResize;
 
 public class ImageResize(ILoggerFactory loggerFactory)
 {
