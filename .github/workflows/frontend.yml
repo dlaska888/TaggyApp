@@ -1,10 +1,14 @@
-name: Angular Build
+name: Angular Test and Build
 
 on:
   workflow_dispatch:
   push:
+    paths:
+      - 'TaggyAppFrontend/**'
     branches: [ "develop" ]
   pull_request:
+    paths:
+      - 'TaggyAppFrontend/**'
     branches: [ "develop" ]
 
 jobs:

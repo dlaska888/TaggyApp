@@ -1,0 +1,54 @@
+.group-view {
+  height: 100%;
+  position: relative;
+
+  .group-view-content {
+    display: flex;
+    flex-direction: column;
+    overflow-y: hidden;
+    height: 100vh;
+  }
+
+  .add-button {
+    max-height: 100vh;
+    position: absolute;
+    bottom: 3rem;
+    right: 4rem;
+  }
+
+  .image-container {
+    width: 100%;
+    padding-top: 100%;
+    position: relative;
+  }
+
+  .image-container img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+
+  .info-close-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+  }
+}
+
+.upload-close-button {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+:host ::ng-deep .group-view {
+  .p-dataview .p-dataview-content {
+    max-height: calc(100vh - 10rem);
+    overflow-y: auto;
+  }
+}

@@ -1,23 +1,41 @@
 /* You can add global styles to this file, and also import other style files */
 @import "primeng/resources/themes/lara-light-blue/theme.css";
 @import "primeng/resources/primeng.css";
-@import 'primeflex/primeflex.scss';
+@import "primeflex/primeflex.scss";
 @import "primeicons/primeicons.css";
 
-html, body {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-    
-    min-width: 100vw;
-    max-width: 100vw;
-    min-height: 100vh;
-    max-height: 100vh;
-    overflow: hidden;
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+
+  min-width: 100vw;
+  max-width: 100vw;
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
 }
 
 .text-ellipsis {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+p-messages {
+  z-index: 2000;
+
+  .p-message-error{
+    background-color: #f8d7da; 
   }
+
+  .p-message-icon {
+    display: none;
+  }
+
+  .p-message-wrapper {
+    padding: 1rem;
+    gap: 1rem;
+  }
+}

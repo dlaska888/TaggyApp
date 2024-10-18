@@ -48,7 +48,7 @@
 <p-sidebar class="relative" styleClass="w-full max-w-30rem" [(visible)]="sidebarVisible" [position]="'right'"
    [transitionOptions]="'200ms'">
    <ng-template pTemplate="headless">
-      <file-info [(file)]="file" (fileDelete)="onFileDeleted()" />
+      <file-info [(file)]="file" (fileChange)="onFileChanged()" (fileDelete)="onFileDeleted()" />
       <p-button icon="pi pi-times" class="info-close-button" [text]="true" [rounded]="true"
          (onClick)="sidebarVisible = false"></p-button>
    </ng-template>

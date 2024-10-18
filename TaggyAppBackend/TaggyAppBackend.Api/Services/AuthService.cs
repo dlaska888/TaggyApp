@@ -155,7 +155,7 @@ public class AuthService(
         var refreshToken = jwtHandler.GenerateRefreshToken();
 
         user.RefreshToken = refreshToken;
-        user.RefreshTokenExp = DateTime.UtcNow.AddDays(Convert.ToDouble(_jwtOptions.RefreshExpirationTime));
+        user.RefreshTokenExp = DateTime.UtcNow.AddMinutes(Convert.ToDouble(_jwtOptions.RefreshExpirationTime));
         await userManager.UpdateAsync(user);
 
         return new TokenDto { AccessToken = token, RefreshToken = refreshToken };

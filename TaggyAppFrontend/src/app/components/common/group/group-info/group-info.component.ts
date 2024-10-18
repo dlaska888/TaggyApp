@@ -53,7 +53,7 @@ export class GroupInfoComponent {
       if (!group) return;
       if (!this.selectedGroup) {
         this.selectedGroup = group;
-        this.initFileEditForm();
+        this.initGroupEditForm();
       } else {
         this.selectedGroup = group;
       }
@@ -65,13 +65,13 @@ export class GroupInfoComponent {
       .updateGroup(this.selectedGroup.id, this.groupEdit)
       .subscribe((response) => {
         this.groupState.setGroup(response.body!);
-        this.initFileEditForm();
+        this.initGroupEditForm();
         this.editing = false;
       });
   }
 
   onCancel() {
-    this.initFileEditForm();
+    this.initGroupEditForm();
     this.editing = false;
   }
 
@@ -93,7 +93,7 @@ export class GroupInfoComponent {
     });
   }
 
-  private initFileEditForm() {
+  private initGroupEditForm() {
     this.groupEdit = UpdateGroupDto.fromGetGroupDto(this.selectedGroup);
     this.groupEditForm = this.fb.formGroup(this.groupEdit);
   }

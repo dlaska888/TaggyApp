@@ -19,6 +19,7 @@ import { authInterceptorFn } from './interceptors/auth.interceptor';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { RxFormBuilder } from '@rxweb/reactive-form-validators';
+import { errorMessageInterceptorFn } from './interceptors/error-message.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -27,7 +28,7 @@ export const appConfig: ApplicationConfig = {
     RxFormBuilder,
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([authInterceptorFn])),
+    provideHttpClient(withInterceptors([authInterceptorFn, errorMessageInterceptorFn])),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',

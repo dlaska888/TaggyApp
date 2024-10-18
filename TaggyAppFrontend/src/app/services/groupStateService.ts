@@ -20,28 +20,21 @@ export class GroupStateService {
     const localGroup = this.localStorage.getItem(
       LocalStorageConstant.SELECTED_GROUP
     );
-    if (localGroup) {
-      this.apiService.getGroupById(localGroup).subscribe(
-        (response) => {
-          if (response.ok) this.group.next(response.body);
-          else this.group.next(null);
-        },
-        (error) => {
-          console.error(error);
-        }
-      );
-    } else {
-      this.apiService.getGroups().subscribe(
-        (response) => {
-          if (response.ok && response.body!.items.length > 0)
-            this.setGroup(response.body!.items[0]);
-          else this.group.next(null);
-        },
-        (error) => {
-          console.error(error);
-        }
-      );
+
+    if (!localGroup) {
+      this.setFirstGroup();
+      return;
     }
+
+    this.apiService.getGroupById(localGroup).subscribe(
+      (response) => {
+        if (response.ok) this.group.next(response.body);
+        else this.setFirstGroup();
+      },
+      (error) => {
+        console.error(error);
+      }
+    );
   }
 
   getGroup$(): BehaviorSubject<GetGroupDto | null> {
@@ -56,5 +49,18 @@ export class GroupStateService {
   removeGroup() {
     this.group.next(null);
     this.localStorage.removeItem(LocalStorageConstant.SELECTED_GROUP);
+  }
+
+  private setFirstGroup() {
+    this.apiService.getGroups().subscribe(
+      (response) => {
+        if (response.ok && response.body!.items.length > 0)
+          this.setGroup(response.body!.items[0]);
+        else this.group.next(null);
+      },
+      (error) => {
+        console.error(error);
+      }
+    );
   }
 }

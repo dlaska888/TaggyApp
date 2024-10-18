@@ -11,6 +11,10 @@
     height: 100vh;
   }
 
+  .group-select {
+    height: calc(100vh - 86px);
+  }
+
   .add-button {
     max-height: 100vh;
     position: absolute;
@@ -49,13 +53,17 @@
 }
 
 :host ::ng-deep .dashboard {
-  .p-dataview .p-dataview-content {
-    max-height: calc(100vh - 10rem);
-    overflow-y: auto;
-  }
-
   .p-sidebar {
     padding: 0;
     max-height: 100vh;
+  }
+
+  .menu-sidebar .p-sidebar-header {
+    padding: 0.5rem;
+    padding-top: 1rem;
+  }
+
+  .menu-sidebar .p-sidebar-content {
+    padding: 0;
   }
 }

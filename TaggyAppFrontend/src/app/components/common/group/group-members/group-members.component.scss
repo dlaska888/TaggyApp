@@ -1,3 +1,10 @@
-.group-user{
-    min-height: 3rem;
+.group-user {
+  min-height: 3rem;
+}
+
+:host ::ng-deep {
+  .p-scroller-content {
+    align-items: center;
+    justify-content: center;
+  }
 }
