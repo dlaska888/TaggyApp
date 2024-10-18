@@ -95,12 +95,13 @@ public class FileService(
 
     public async Task<GetFileDto> Update(string groupId, string fileId, UpdateFileDto dto)
     {
-        if (await FindFileByName(groupId, dto.Name) is not null)
-            throw new BadRequestException($"{dto.Name} already exists");
-        
         var file = await FindFile(groupId, fileId);
+        
         if (file.CreatorId != authContext.GetUserId())
             await groupUserService.VerifyGroupAccess(file.GroupId, GroupRole.Admin);
+        
+        if(file.UntrustedName != dto.Name && await FindFileByName(groupId, dto.Name) is not null)
+            throw new BadRequestException($"{dto.Name} already exists");
 
         mapper.Map(dto, file);
 
