@@ -40,7 +40,6 @@ export class DashboardComponent implements OnInit {
   user!: GetAccountDto;
   selectedGroup!: GetGroupDto;
   nameQuery: FormControl = new FormControl('', [
-    Validators.minLength(3),
     Validators.maxLength(255),
   ]);
   loading: boolean = true;

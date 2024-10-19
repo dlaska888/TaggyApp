@@ -103,9 +103,6 @@ export class GroupViewComponent implements OnInit {
   loading: boolean = true;
   skeletonArray: any[] = Array(this.fileRows);
 
-  @ViewChild(GroupSelectComponent)
-  groupSelectComponent!: GroupSelectComponent;
-
   constructor(
     private taggyApi: TaggyAppApiService,
     private groupState: GroupStateService,

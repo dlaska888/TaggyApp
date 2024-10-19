@@ -6,12 +6,10 @@
       <ng-template pTemplate="header">
          <div class="card flex-1 flex justify-content-between">
             <p-button [text]="true" [severity]="'secondary'" (onClick)="menu.toggle($event)" icon="pi pi-bars" />
-            <form class="p-input-icon-right">
                <span class="p-input-icon-left">
                   <i class="pi pi-search"></i>
                   <input type="text" pInputText placeholder="Search" [formControl]="nameQuery">
                </span>
-            </form>
             <p-button [text]="true" [severity]="'secondary'" (onClick)="menuBarVisible = false" icon="pi pi-times" />
          </div>
          <p-menu #menu [model]="items" [popup]="true" />

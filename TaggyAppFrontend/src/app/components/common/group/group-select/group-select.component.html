@@ -1,15 +1,15 @@
-<div *ngIf="pagedGroups.items.length > 0" #infiniteScrollParentElem infiniteScroll [infiniteScrollDistance]="2"
+<div #infiniteScrollParentElem infiniteScroll [infiniteScrollDistance]="2"
    [infiniteScrollThrottle]="500" [scrollWindow]="false" (scrolled)="onScrolled()" class="overflow-y-auto h-full">
-   <div #infiniteScrollChildElem *ngIf="pagedGroups" class="flex flex-column p-2 gap-2">
+   <div #infiniteScrollChildElem *ngIf="!loading && pagedGroups.items.length > 0" class="flex flex-column gap-2 p-2">
       <div *ngFor="let group of pagedGroups.items" (click)="onChange(group)" class="p-card p-3"
          [ngClass]="{ 'bg-primary': selectedGroup?.id === group.id }">
          <p class="m-0">{{group.name}}</p>
       </div>
    </div>
-   <div *ngIf="loading" class="flex flex-column gap-2 px-2">
+   <div *ngIf="loading" class="flex flex-column gap-2 p-2">
       <p-skeleton *ngFor="let i of skeletonArray" height="3rem" width="100%"></p-skeleton>
    </div>
+   <h3 *ngIf="!loading && pagedGroups.items.length === 0" class="text-center">
+      No groups found
+   </h3>
 </div>
-<h3 *ngIf="pagedGroups.items.length === 0" class="text-center">
-   Add your first group
-</h3>
