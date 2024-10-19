@@ -130,64 +130,37 @@ public class FileService(
 
     private async Task<File> SaveFileWithTags(File file, IEnumerable<CreateTagDto> tags)
     {
-        await using var transaction = await dbContext.Database.BeginTransactionAsync();
-        try
+        var group = await FindGroup(file.GroupId);
+
+        // Create new tags from dto
+        file.Tags = new List<Tag>();
+        foreach (var tagDto in tags)
         {
-            var group = await FindGroup(file.GroupId);
+            var found = group.Tags.FirstOrDefault(t => t.Name == tagDto.Name);
+            var tag = found ?? new Tag { Name = tagDto.Name };
 
-            // Create new tags from dto
-            file.Tags = new List<Tag>();
-            foreach (var tagDto in tags)
-            {
-                var found = group.Tags.FirstOrDefault(t => t.Name == tagDto.Name);
-                var tag = found ?? new Tag { Name = tagDto.Name };
+            file.Tags.Add(tag);
 
-                file.Tags.Add(tag);
-
-                if (found is null)
-                    group.Tags.Add(tag);
-            }
-
-            await dbContext.SaveChangesAsync();
-
-            await transaction.CommitAsync();
+            if (found is null)
+                group.Tags.Add(tag);
         }
-        catch (Exception e)
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
+
+        await dbContext.SaveChangesAsync();
 
         return file;
     }
 
     private async Task<bool> DeleteFileWithTags(File file)
     {
-        await using var transaction = await dbContext.Database.BeginTransactionAsync();
-        try
-        {
-            var fileTags = dbContext.Tags
-                .Include(t => t.Files)
-                .Where(t => t.Files.Any(f => f.Id == file.Id));
+        await dbContext.Tags
+            .Where(t => t.Files.Any(f => f.Id == file.Id) && t.Files.Count == 1)
+            .ExecuteDeleteAsync();
 
-            foreach (var tag in fileTags)
-            {
-                if (tag.Files.Count == 1)
-                    dbContext.Tags.Remove(tag);
-            }
+        await dbContext.Files
+            .Where(f => f.Id == file.Id)
+            .ExecuteDeleteAsync();
 
-            dbContext.Files.Remove(file);
-
-            var result = await dbContext.SaveChangesAsync();
-            await transaction.CommitAsync();
-
-            return result > 0;
-        }
-        catch (Exception e)
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
+        return true;
     }
 
     private async Task<File> FindFile(string groupId, string fileId)
@@ -233,7 +206,7 @@ public class FileService(
     private async Task<GetFileDto> MapFileToDto(File file)
     {
         var mapped = mapper.Map<GetFileDto>(file);
-        mapped.Url = await blobRepo.GetBlobDownloadPath(file.TrustedName, _blobOptionsValue.Container);
+        mapped.Url = await blobRepo.GetBlobDownloadPath(file.TrustedName, _blobOptionsValue.Container, file.UntrustedName);
         mapped.Tags = file.Tags.OrderBy(t => t.Name).Select(mapper.Map<GetTagDto>).ToList();
         if (file.ContentType.StartsWith("image/"))
             mapped.ThumbnailUrl =

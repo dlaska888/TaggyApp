@@ -160,11 +160,11 @@ export class GroupViewComponent implements OnInit {
   }
 
   onFileChanged(): void {
-    this.getFiles();
+    this.refreshGroup();
   }
 
   onFileDeleted(): void {
-    this.getFiles();
+    this.refreshGroup();
   }
 
   onPageChange(event: PaginatorState) {

@@ -1,4 +1,12 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { CommonModule } from '@angular/common';
@@ -25,7 +33,7 @@ import { GetFileDto } from '../../../../models/dtos/file/getFileDto';
   templateUrl: './file-view-dialog.component.html',
   styleUrl: './file-view-dialog.component.scss',
 })
-export class FileViewDialogComponent implements OnInit {
+export class FileViewDialogComponent implements OnChanges {
   @Input() visible: boolean = false;
   @Output() visibleChange = new EventEmitter<boolean>();
   @Input() file!: GetFileDto;
@@ -38,7 +46,21 @@ export class FileViewDialogComponent implements OnInit {
 
   sidebarVisible: boolean = false;
 
-  ngOnInit(): void {
+  ngOnChanges(changes: SimpleChanges) {
+    if (this.file) this.initMenuItems();
+  }
+
+  onFileChanged() {
+    this.fileChange.emit();
+  }
+
+  onFileDeleted() {
+    this.visible = false;
+    this.sidebarVisible = false;
+    this.fileDelete.emit();
+  }
+
+  private initMenuItems() {
     this.menuItems = [
       {
         label: 'View Info',
@@ -54,15 +76,5 @@ export class FileViewDialogComponent implements OnInit {
         target: '_self',
       },
     ];
-  }
-
-  onFileChanged() {
-    this.fileChange.emit();
-  }
-
-  onFileDeleted() {
-    this.visible = false;
-    this.sidebarVisible = false;
-    this.fileDelete.emit();
   }
 }

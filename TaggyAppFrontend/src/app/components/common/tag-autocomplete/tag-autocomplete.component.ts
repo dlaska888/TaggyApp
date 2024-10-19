@@ -2,8 +2,6 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import {
   AutoCompleteCompleteEvent,
   AutoCompleteModule,
-  AutoCompleteSelectEvent,
-  AutoCompleteUnselectEvent,
 } from 'primeng/autocomplete';
 import { CreateTagDto } from '../../../models/dtos/tag/createTagDto';
 import { GetGroupDto } from '../../../models/dtos/group/getGroupDto';
@@ -53,19 +51,24 @@ export class TagAutocompleteComponent {
   }
 
   onSelect() {
+    this.validateTags();
     this.tagsChange.emit(this.tags);
   }
 
-  onUnselect(event: AutoCompleteUnselectEvent) {
-    this.tags = this.tags.filter((t) => t != event.value);
+  onUnselect() {
     this.validateTags();
     this.tagsChange.emit(this.tags);
   }
 
   private addTag(name: string) {
-    if(this.tags.find(t => t.name === name)) return;
-    this.tags.push({ name: name });
-    this.validateTags();
+    if (this.tags.find((t) => t.name === name)) return;
+    var suggestion = this.tagSuggestions.find((t) => t.name === name);
+    if(suggestion){
+      this.tags.push(suggestion);  
+    } else {
+      this.tags.push({ name: name });
+      this.validateTags();
+    }
     this.tagsChange.emit(this.tags);
   }
 
