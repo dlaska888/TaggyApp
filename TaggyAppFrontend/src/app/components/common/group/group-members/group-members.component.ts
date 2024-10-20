@@ -19,6 +19,8 @@ import { SieveModelDto } from '../../../../models/dtos/sieveModelDto';
 import { ConfirmationService } from 'primeng/api';
 import { ScrollerLazyLoadEvent } from 'primeng/scroller';
 import { PagedResults } from '../../../../models/dtos/pagedResults';
+import { finalize } from 'rxjs';
+import { SkeletonModule } from 'primeng/skeleton';
 
 @Component({
   selector: 'group-members',
@@ -31,6 +33,7 @@ import { PagedResults } from '../../../../models/dtos/pagedResults';
     DropdownModule,
     DialogModule,
     InputTextModule,
+    SkeletonModule,
   ],
   templateUrl: './group-members.component.html',
   styleUrl: './group-members.component.scss',
@@ -45,6 +48,16 @@ export class GroupMembersComponent implements OnInit {
   formVisible: boolean = false;
 
   editGroupUser!: UpdateGroupUserDto;
+
+  pagedGroupUsers!: PagedResults<GetGroupUserDto>;
+  page: number = 1;
+  rows: number = 1;
+  skeletonArray = Array(5);
+
+  addLoading: boolean = false;
+  editLoading: boolean = false;
+  deleteLoading: boolean = false;
+  usersLoading: boolean = false;
 
   isEditing = (user: GetGroupUserDto): boolean =>
     this.selectedGroupUser === user;
@@ -66,11 +79,6 @@ export class GroupMembersComponent implements OnInit {
     { label: this.roleToLabel(GroupRole.Admin), value: GroupRole.Admin },
     { label: this.roleToLabel(GroupRole.Owner), value: GroupRole.Owner },
   ];
-
-  pagedGroupUsers!: PagedResults<GetGroupUserDto>;
-  page: number = 1;
-  rows: number = 20;
-  loading: boolean = false;
 
   constructor(
     private groupState: GroupStateService,
@@ -97,8 +105,10 @@ export class GroupMembersComponent implements OnInit {
   }
 
   onUserAddSubmit() {
+    this.addLoading = true;
     this.api
       .createGroupUser(this.selectedGroup.id, this.newGroupUser)
+      .pipe(finalize(() => (this.addLoading = false)))
       .subscribe((response) => {
         if (!response.ok) return;
         this.pagedGroupUsers.items.push(response.body!);
@@ -117,12 +127,14 @@ export class GroupMembersComponent implements OnInit {
   }
 
   onUserEditSubmit() {
+    this.editLoading = true;
     this.api
       .updateGroupUser(
         this.selectedGroup.id,
         this.selectedGroupUser!.userId,
         this.editGroupUser
       )
+      .pipe(finalize(() => (this.editLoading = false)))
       .subscribe((response) => {
         this.selectedGroupUser = null;
         this.pagedGroupUsers.items.forEach((gu) => {
@@ -147,8 +159,10 @@ export class GroupMembersComponent implements OnInit {
       rejectIcon: 'none',
       rejectButtonStyleClass: 'p-button-text',
       accept: () => {
+        this.deleteLoading = true;
         this.api
           .deleteGroupUser(this.selectedGroup.id, groupUser.userId)
+          .pipe(finalize(() => (this.deleteLoading = false)))
           .subscribe((response) => {
             if (!response.ok) return;
             this.pagedGroupUsers.items = this.pagedGroupUsers.items.filter(
@@ -179,9 +193,10 @@ export class GroupMembersComponent implements OnInit {
 
   private getGroupUsers() {
     const query = new SieveModelDto(this.page, this.rows, '-role');
-    this.loading = true;
+    this.usersLoading = true;
     this.api
       .getGroupUsers(this.selectedGroup.id, query)
+      .pipe(finalize(() => (this.usersLoading = false)))
       .subscribe((response) => {
         if (!response.ok) return;
         const oldItems = this.pagedGroupUsers.items;
@@ -190,7 +205,6 @@ export class GroupMembersComponent implements OnInit {
           ...oldItems,
           ...this.pagedGroupUsers.items,
         ];
-        this.loading = false;
       });
   }
 

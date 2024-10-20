@@ -3,11 +3,12 @@ import { UserStateService } from './../../../../services/userStateService';
 import { Component, OnInit } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { GetAccountDto } from '../../../../models/dtos/account/getAccountDto';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 @Component({
   selector: 'settings',
   standalone: true,
-  imports: [CommonModule, ButtonModule],
+  imports: [CommonModule, ButtonModule, ProgressSpinnerModule],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss',
 })

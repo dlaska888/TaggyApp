@@ -46,7 +46,7 @@ export class FileViewDialogComponent implements OnChanges {
 
   sidebarVisible: boolean = false;
 
-  ngOnChanges(changes: SimpleChanges) {
+  ngOnChanges() {
     if (this.file) this.initMenuItems();
   }
 

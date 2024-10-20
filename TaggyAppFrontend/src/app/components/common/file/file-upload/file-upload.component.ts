@@ -173,7 +173,6 @@ export class FileUploadComponent implements OnInit {
             file.status = 'success';
             this.removeFile(file);
             this.uploadedFiles.push(file);
-            this.onFilesUploaded.emit();
           }
         },
         (error) => {

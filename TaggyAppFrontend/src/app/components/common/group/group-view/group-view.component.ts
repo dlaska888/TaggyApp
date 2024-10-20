@@ -1,31 +1,39 @@
-import { CommonModule, NgOptimizedImage } from "@angular/common";
-import { Component, EventEmitter, OnInit, Output, ViewChild } from "@angular/core";
-import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
-import { SelectItem } from "primeng/api";
-import { BadgeModule } from "primeng/badge";
-import { ButtonModule } from "primeng/button";
-import { CardModule } from "primeng/card";
-import { DataViewModule } from "primeng/dataview";
-import { DropdownModule, DropdownChangeEvent } from "primeng/dropdown";
-import { FloatLabelModule } from "primeng/floatlabel";
-import { InputTextModule } from "primeng/inputtext";
-import { MultiSelectModule } from "primeng/multiselect";
-import { OverlayPanelModule } from "primeng/overlaypanel";
-import { PaginatorModule, PaginatorState } from "primeng/paginator";
-import { SidebarModule } from "primeng/sidebar";
-import { SkeletonModule } from "primeng/skeleton";
-import { GetFileDto } from "../../../../models/dtos/file/getFileDto";
-import { GetGroupDto } from "../../../../models/dtos/group/getGroupDto";
-import { PagedResults } from "../../../../models/dtos/pagedResults";
-import { SieveModelDto } from "../../../../models/dtos/sieveModelDto";
-import { FileSizePipe } from "../../../../pipes/file-size.pipe";
-import { GroupStateService } from "../../../../services/groupStateService";
-import { TaggyAppApiService } from "../../../../services/taggyAppApi.service";
-import { FileUploadComponent } from "../../file/file-upload/file-upload.component";
-import { FileViewDialogComponent } from "../../file/file-view-dialog/file-view-dialog.component";
-import { TagAutocompleteComponent } from "../../tag-autocomplete/tag-autocomplete.component";
-import { GroupInfoComponent } from "../group-info/group-info.component";
-import { GroupSelectComponent } from "../group-select/group-select.component";
+import { CommonModule, NgOptimizedImage } from '@angular/common';
+import {
+  Component,
+  EventEmitter,
+  OnInit,
+  Output,
+  ViewChild,
+} from '@angular/core';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { SelectItem } from 'primeng/api';
+import { BadgeModule } from 'primeng/badge';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { DataViewModule } from 'primeng/dataview';
+import { DropdownModule, DropdownChangeEvent } from 'primeng/dropdown';
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { InputTextModule } from 'primeng/inputtext';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { OverlayPanelModule } from 'primeng/overlaypanel';
+import { PaginatorModule, PaginatorState } from 'primeng/paginator';
+import { SidebarModule } from 'primeng/sidebar';
+import { SkeletonModule } from 'primeng/skeleton';
+import { GetFileDto } from '../../../../models/dtos/file/getFileDto';
+import { GetGroupDto } from '../../../../models/dtos/group/getGroupDto';
+import { PagedResults } from '../../../../models/dtos/pagedResults';
+import { SieveModelDto } from '../../../../models/dtos/sieveModelDto';
+import { FileSizePipe } from '../../../../pipes/file-size.pipe';
+import { GroupStateService } from '../../../../services/groupStateService';
+import { TaggyAppApiService } from '../../../../services/taggyAppApi.service';
+import { FileUploadComponent } from '../../file/file-upload/file-upload.component';
+import { FileViewDialogComponent } from '../../file/file-view-dialog/file-view-dialog.component';
+import { TagAutocompleteComponent } from '../../tag-autocomplete/tag-autocomplete.component';
+import { GroupInfoComponent } from '../group-info/group-info.component';
+import { GroupSelectComponent } from '../group-select/group-select.component';
+import { finalize } from 'rxjs';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 @UntilDestroy()
 @Component({
@@ -52,12 +60,12 @@ import { GroupSelectComponent } from "../group-select/group-select.component";
     TagAutocompleteComponent,
     FileViewDialogComponent,
     GroupInfoComponent,
+    ProgressSpinnerModule
   ],
   templateUrl: './group-view.component.html',
   styleUrl: './group-view.component.scss',
 })
 export class GroupViewComponent implements OnInit {
-
   @Output()
   menuOpenChange = new EventEmitter<boolean>(false);
 
@@ -105,7 +113,7 @@ export class GroupViewComponent implements OnInit {
 
   constructor(
     private taggyApi: TaggyAppApiService,
-    private groupState: GroupStateService,
+    private groupState: GroupStateService
   ) {}
 
   ngOnInit(): void {
@@ -147,7 +155,8 @@ export class GroupViewComponent implements OnInit {
     this.menuOpenChange.emit(true);
   }
 
-  onFilesUploaded(): void {
+  onHideFileUpload(): void {
+    this.fileUploadVisible = false;
     this.refreshGroup();
   }
 
@@ -199,22 +208,27 @@ export class GroupViewComponent implements OnInit {
     this.loading = true;
     this.taggyApi
       .getGroupFiles(this.selectedGroup.id, query)
+      .pipe(finalize(() => (this.loading = false)))
       .subscribe((response) => {
         this.pagedFiles = response.body!;
-        this.loading = false;
       });
   }
 
   private refreshGroup(): void {
-    this.taggyApi.getGroupById(this.selectedGroup.id).subscribe(
-      (response) => {
-        this.selectedGroup = response.body!;
-        this.searchPlaceholder = `Search in ${response.body!.name}...`;
-        this.getFiles();
-      },
-      (error) => {
-        console.error(error);
-      }
-    );
+    this.loading = true;
+    this.groupInfoVisible = false;
+    this.taggyApi
+      .getGroupById(this.selectedGroup.id)
+      .pipe(finalize(() => (this.loading = false)))
+      .subscribe(
+        (response) => {
+          this.selectedGroup = response.body!;
+          this.searchPlaceholder = `Search in ${response.body!.name}...`;
+          this.getFiles();
+        },
+        (error) => {
+          console.error(error);
+        }
+      );
   }
 }

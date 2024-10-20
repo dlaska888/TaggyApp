@@ -8,27 +8,32 @@
                   <p-button icon="pi pi-bars" (onClick)="onMenuOpen()"></p-button>
                </div>
                <div class="flex flex-1 justify-content-center">
-                  <p-button *ngIf="selectedGroup" icon="pi pi-filter" styleClass="p-0" [text]="true" [rounded]="true"
+                  <p-button icon="pi pi-filter" styleClass="p-0" [text]="true" [rounded]="true"
                      (onClick)="op.toggle($event)">
                      <p-overlayPanel #op header="Filter files" [style]="{ width: '100vw', maxWidth:'550px'}"
                         [focusOnShow]="true">
-                        <div class="flex">
-                           <p-dropdown class="w-8" [options]="sortOptions" [showClear]="true" [checkmark]="true"
-                              (onChange)="onSortChange($event)" [style]="{'width':'100%'}" placeholder="Sort"
-                              styleClass="mb-2 md:mb-0" />
-                           <p-dropdown class="w-4" [options]="sortOperatorOptions" [style]="{'width':'100%'}"
-                              (onChange)="onSortOperatorChange($event)">
-                           </p-dropdown>
+                        <div *ngIf="!loading">
+                           <div class="flex">
+                              <p-dropdown class="w-8" [options]="sortOptions" [showClear]="true" [checkmark]="true"
+                                 (onChange)="onSortChange($event)" [style]="{'width':'100%'}" placeholder="Sort"
+                                 styleClass="mb-2 md:mb-0" />
+                              <p-dropdown class="w-4" [options]="sortOperatorOptions" [style]="{'width':'100%'}"
+                                 (onChange)="onSortOperatorChange($event)">
+                              </p-dropdown>
+                           </div>
+                           <div class="flex">
+                              <p-multiSelect class="w-8" [(ngModel)]="selectedTags" [options]="selectedGroup.tags"
+                                 [showClear]="true" (onChange)="onTagsChange()" (onClear)="onTagsChange()"
+                                 [style]="{'width':'100%'}" display="chip" optionLabel="name" optionValue="name"
+                                 placeholder="Tags">
+                              </p-multiSelect>
+                              <p-dropdown class="w-4" [options]="tagOperatorOptions" [style]="{'width':'100%'}"
+                                 (onChange)="onTagOperatorChange($event)">
+                              </p-dropdown>
+                           </div>
                         </div>
-                        <div class="flex">
-                           <p-multiSelect class="w-8" [(ngModel)]="selectedTags" [options]="selectedGroup.tags"
-                              [showClear]="true" (onChange)="onTagsChange()" (onClear)="onTagsChange()"
-                              [style]="{'width':'100%'}" display="chip" optionLabel="name" optionValue="name"
-                              placeholder="Tags">
-                           </p-multiSelect>
-                           <p-dropdown class="w-4" [options]="tagOperatorOptions" [style]="{'width':'100%'}"
-                              (onChange)="onTagOperatorChange($event)">
-                           </p-dropdown>
+                        <div *ngIf="loading" class="flex justify-content-center">
+                           <p-progressSpinner styleClass="w-3rem h-3rem"></p-progressSpinner>
                         </div>
                      </p-overlayPanel>
                   </p-button>
@@ -102,11 +107,11 @@
    <p-sidebar class="relative" appendTo="body" [(visible)]="fileUploadVisible" [fullScreen]="true" [position]="'bottom'"
       [transitionOptions]="'200ms'">
       <ng-template pTemplate="headless">
-         <file-upload [group]="selectedGroup" (onFilesUploaded)="onFilesUploaded()"></file-upload>
+         <file-upload [group]="selectedGroup"></file-upload>
          <p-button icon="pi pi-angle-double-down" class="upload-close-button" [rounded]="true"
-            (onClick)="fileUploadVisible = false"></p-button>
+            (onClick)="onHideFileUpload()"></p-button>
       </ng-template>
    </p-sidebar>
-   <file-view-dialog *ngIf="selectedFile" [file]="selectedFile" [(visible)]="fileViewVisible" (fileChange)="onFileChanged()"
-      (fileDelete)="onFileDeleted()" />
+   <file-view-dialog *ngIf="selectedFile" [file]="selectedFile" [(visible)]="fileViewVisible"
+      (fileChange)="onFileChanged()" (fileDelete)="onFileDeleted()" />
 </div>

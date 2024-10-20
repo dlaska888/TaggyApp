@@ -7,6 +7,7 @@ import { GroupStateService } from '../../../../services/groupStateService';
 import { ButtonModule } from 'primeng/button';
 import { CommonModule } from '@angular/common';
 import { InputTextModule } from 'primeng/inputtext';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'add-group',
@@ -19,9 +20,10 @@ export class AddGroupComponent implements OnInit {
   newGroup!: CreateGroupDto;
   newGroupForm!: FormGroup;
   formVisible: boolean = false;
+  apiLoading: boolean = false;
 
   @Output()
-  formSubmit = new EventEmitter<null>;
+  formSubmit = new EventEmitter<null>();
 
   constructor(
     private taggyAppApiService: TaggyAppApiService,
@@ -34,14 +36,18 @@ export class AddGroupComponent implements OnInit {
   }
 
   onSubmit(): void {
-    this.taggyAppApiService.createGroup(this.newGroup).subscribe((response) => {
-      if (response.ok) {
-        this.formVisible = false;
-        this.groupState.setGroup(response.body!);
-        this.initNewGroupForm();
-        this.formSubmit.emit();
-      }
-    });
+    this.apiLoading = true;
+    this.taggyAppApiService
+      .createGroup(this.newGroup)
+      .pipe(finalize(() => (this.apiLoading = false)))
+      .subscribe((response) => {
+        if (response.ok) {
+          this.formVisible = false;
+          this.groupState.setGroup(response.body!);
+          this.initNewGroupForm();
+          this.formSubmit.emit();
+        }
+      });
   }
 
   private initNewGroupForm() {

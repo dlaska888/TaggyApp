@@ -3,3 +3,4 @@
    <h4 *ngIf="user.userName !== user.email">{{user.email}}</h4>
    <p>Joined {{user.createdAt | date}}</p>
 </div>
+<p-progressSpinner *ngIf="!user"></p-progressSpinner>
