@@ -17,6 +17,10 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { SieveModelDto } from '../../../../models/dtos/sieveModelDto';
 import { ConfirmationService } from 'primeng/api';
+import { ScrollerLazyLoadEvent } from 'primeng/scroller';
+import { PagedResults } from '../../../../models/dtos/pagedResults';
+import { finalize } from 'rxjs';
+import { SkeletonModule } from 'primeng/skeleton';
 
 @Component({
   selector: 'group-members',
@@ -29,6 +33,7 @@ import { ConfirmationService } from 'primeng/api';
     DropdownModule,
     DialogModule,
     InputTextModule,
+    SkeletonModule,
   ],
   templateUrl: './group-members.component.html',
   styleUrl: './group-members.component.scss',
@@ -36,7 +41,6 @@ import { ConfirmationService } from 'primeng/api';
 export class GroupMembersComponent implements OnInit {
   selectedGroup!: GetGroupDto;
   selectedGroupUser: GetGroupUserDto | null = null;
-  groupUsers!: GetGroupUserDto[];
   authUser!: GetAccountDto;
 
   newGroupUser!: CreateGroupUserDto;
@@ -45,12 +49,26 @@ export class GroupMembersComponent implements OnInit {
 
   editGroupUser!: UpdateGroupUserDto;
 
+  pagedGroupUsers!: PagedResults<GetGroupUserDto>;
+  page: number = 1;
+  rows: number = 1;
+  skeletonArray = Array(5);
+
+  addLoading: boolean = false;
+  editLoading: boolean = false;
+  deleteLoading: boolean = false;
+  usersLoading: boolean = false;
+
   isEditing = (user: GetGroupUserDto): boolean =>
     this.selectedGroupUser === user;
   hasLowerRole = (user: GetGroupUserDto): boolean =>
     user.role < this.selectedGroup.currentUserRole;
   isCurrentUser = (user: GetGroupUserDto): boolean =>
     user.userId === this.authUser.id;
+  isSameRole = (user: GetGroupUserDto): boolean =>
+    user.role === this.editGroupUser!.role;
+  hasMoreData = (): boolean =>
+    this.pagedGroupUsers.items.length < this.pagedGroupUsers.totalItems;
 
   roleOptions = [
     { label: this.roleToLabel(GroupRole.Normal), value: GroupRole.Normal },
@@ -79,16 +97,21 @@ export class GroupMembersComponent implements OnInit {
         if (!group) return;
         this.selectedGroup = group;
         this.initRoleOptions();
-        this.refreshGroupUsers();
+        this.initNewGroupUserForm();
+        this.initPagination();
+        this.getGroupUsers();
       });
     });
   }
 
   onUserAddSubmit() {
+    this.addLoading = true;
     this.api
       .createGroupUser(this.selectedGroup.id, this.newGroupUser)
-      .subscribe((_) => {
-        this.refreshGroupUsers();
+      .pipe(finalize(() => (this.addLoading = false)))
+      .subscribe((response) => {
+        if (!response.ok) return;
+        this.pagedGroupUsers.items.push(response.body!);
         this.initNewGroupUserForm();
         this.formVisible = false;
       });
@@ -104,14 +127,20 @@ export class GroupMembersComponent implements OnInit {
   }
 
   onUserEditSubmit() {
+    this.editLoading = true;
     this.api
       .updateGroupUser(
         this.selectedGroup.id,
         this.selectedGroupUser!.userId,
         this.editGroupUser
       )
-      .subscribe((_) => {
-        this.refreshGroupUsers();
+      .pipe(finalize(() => (this.editLoading = false)))
+      .subscribe((response) => {
+        this.selectedGroupUser = null;
+        this.pagedGroupUsers.items.forEach((gu) => {
+          if (gu.userId === response.body!.userId)
+            Object.assign(gu, response.body!);
+        });
       });
   }
 
@@ -130,10 +159,15 @@ export class GroupMembersComponent implements OnInit {
       rejectIcon: 'none',
       rejectButtonStyleClass: 'p-button-text',
       accept: () => {
+        this.deleteLoading = true;
         this.api
           .deleteGroupUser(this.selectedGroup.id, groupUser.userId)
-          .subscribe((_) => {
-            this.refreshGroupUsers();
+          .pipe(finalize(() => (this.deleteLoading = false)))
+          .subscribe((response) => {
+            if (!response.ok) return;
+            this.pagedGroupUsers.items = this.pagedGroupUsers.items.filter(
+              (gu) => gu.userId !== groupUser.userId
+            );
           });
       },
     });
@@ -152,17 +186,26 @@ export class GroupMembersComponent implements OnInit {
     }
   }
 
-  private refreshGroupUsers() {
-    const query = new SieveModelDto();
-    query.pageSize = 100;
-    query.page = 1;
-    query.sorts = '-role';
+  onMoreGroupUsers(): void {
+    this.page += 1;
+    this.getGroupUsers();
+  }
+
+  private getGroupUsers() {
+    const query = new SieveModelDto(this.page, this.rows, '-role');
+    this.usersLoading = true;
     this.api
       .getGroupUsers(this.selectedGroup.id, query)
+      .pipe(finalize(() => (this.usersLoading = false)))
       .subscribe((response) => {
-        this.groupUsers = response.body!.items;
+        if (!response.ok) return;
+        const oldItems = this.pagedGroupUsers.items;
+        this.pagedGroupUsers = response.body!;
+        this.pagedGroupUsers.items = [
+          ...oldItems,
+          ...this.pagedGroupUsers.items,
+        ];
       });
-    this.selectedGroupUser = null;
   }
 
   private initRoleOptions() {
@@ -174,5 +217,16 @@ export class GroupMembersComponent implements OnInit {
   private initNewGroupUserForm() {
     this.newGroupUser = new CreateGroupUserDto();
     this.newGroupUserForm = this.fb.formGroup(this.newGroupUser);
+  }
+
+  private initPagination(): void {
+    this.page = 1;
+    this.pagedGroupUsers = {
+      pageNum: this.page,
+      pageSize: this.rows,
+      totalItems: 0,
+      totalPages: 0,
+      items: [],
+    };
   }
 }

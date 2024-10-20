@@ -2,8 +2,6 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import {
   AutoCompleteCompleteEvent,
   AutoCompleteModule,
-  AutoCompleteSelectEvent,
-  AutoCompleteUnselectEvent,
 } from 'primeng/autocomplete';
 import { CreateTagDto } from '../../../models/dtos/tag/createTagDto';
 import { GetGroupDto } from '../../../models/dtos/group/getGroupDto';
@@ -43,29 +41,34 @@ export class TagAutocompleteComponent {
     );
   }
 
-  onTagKeyUp(event: KeyboardEvent) {
-    if (event.key == ' ' || event.code == 'Space') {
-      let tokenInput = event.srcElement as any;
-      if (tokenInput.value) {
-        this.addTag(tokenInput.value.replace(' ', ''));
-        tokenInput.value = '';
-      }
+  onTagInput(event: Event) {
+    const tokenInput = event.target as HTMLInputElement;
+    const value = tokenInput.value;
+    if (value.includes(' ')) {
+      this.addTag(value.trim());
+      tokenInput.value = '';
     }
   }
 
   onSelect() {
+    this.validateTags();
     this.tagsChange.emit(this.tags);
   }
 
-  onUnselect(event: AutoCompleteUnselectEvent) {
-    this.tags = this.tags.filter((t) => t != event.value);
+  onUnselect() {
     this.validateTags();
     this.tagsChange.emit(this.tags);
   }
 
   private addTag(name: string) {
-    this.tags.push({ name: name });
-    this.validateTags();
+    if (this.tags.find((t) => t.name === name)) return;
+    var suggestion = this.tagSuggestions.find((t) => t.name === name);
+    if(suggestion){
+      this.tags.push(suggestion);  
+    } else {
+      this.tags.push({ name: name });
+      this.validateTags();
+    }
     this.tagsChange.emit(this.tags);
   }
 

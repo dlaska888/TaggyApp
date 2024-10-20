@@ -59,7 +59,7 @@ public class BlobRepo : IBlobRepo
         };
 
         sasBuilder.SetPermissions(BlobContainerSasPermissions.Read);
-        sasBuilder.ExpiresOn = DateTimeOffset.UtcNow.AddHours(_options.SasTokenExpirationTime);
+        sasBuilder.ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(_options.SasTokenExpirationTime);
 
         var sasQuery =
             sasBuilder.ToSasQueryParameters(new StorageSharedKeyCredential(_options.StorageAccount, _options.Key));

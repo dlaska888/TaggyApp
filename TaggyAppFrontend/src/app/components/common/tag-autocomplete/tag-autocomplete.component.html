@@ -1,7 +1,6 @@
 <span class="p-fluid">
       <p-autoComplete [(ngModel)]="tags" [suggestions]="tagSuggestions" [multiple]="true" [dropdown]="true"
-            [showEmptyMessage]="false" (completeMethod)="onTagSuggestionComplete($event)" (onSelect)="onSelect()"
-            (onUnselect)="onUnselect($event)" (onKeyUp)="onTagKeyUp($event)" [placeholder]="'Tags'"
+            [showEmptyMessage]="false" (completeMethod)="onTagSuggestionComplete($event)" (onSelect)="onSelect()" (onUnselect)="onUnselect()" (input)="onTagInput($event)" [placeholder]="'Tags'"
             [ngClass]="{'ng-invalid': !tagsValid, 'ng-dirty': !tagsValid}" field="name">
       </p-autoComplete>
 </span>

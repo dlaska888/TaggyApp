@@ -4,7 +4,14 @@ import {
   HttpEvent,
   HttpEventType,
 } from '@angular/common/http';
-import { Component, Output, EventEmitter, Input, OnInit } from '@angular/core';
+import {
+  Component,
+  Output,
+  EventEmitter,
+  Input,
+  OnInit,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { AutoCompleteModule } from 'primeng/autocomplete';
@@ -30,6 +37,7 @@ import { TaggyAppApiService } from '../../../../services/taggyAppApi.service';
 import { GroupSelectComponent } from '../../group/group-select/group-select.component';
 import { TagAutocompleteComponent } from '../../tag-autocomplete/tag-autocomplete.component';
 import { FileViewDialogComponent } from '../file-view-dialog/file-view-dialog.component';
+import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
   selector: 'file-upload',
@@ -44,6 +52,7 @@ import { FileViewDialogComponent } from '../file-view-dialog/file-view-dialog.co
     ToastModule,
     DropdownModule,
     FormsModule,
+    InputTextModule,
     FloatLabelModule,
     AutoCompleteModule,
     HttpClientModule,
@@ -76,7 +85,7 @@ export class FileUploadComponent implements OnInit {
 
   constructor(
     private taggyAppApiService: TaggyAppApiService,
-    private messageService: MessageService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -94,11 +103,8 @@ export class FileUploadComponent implements OnInit {
 
   onSelectedFiles(event: FileSelectEvent) {
     for (const file of event.files) {
-      const exists = this.files.some((f) => f.browserFile.name === file.name);
-      if (!exists) {
-        this.files.push(new ProgressFile(file));
-        this.totalSize += file.size;
-      }
+      this.files.push(new ProgressFile(file));
+      this.totalSize += file.size;
     }
     this.totalSizePercent = (this.totalSize / this.sizeLimit) * 100;
   }
@@ -146,9 +152,11 @@ export class FileUploadComponent implements OnInit {
   }
 
   private uploadFile(file: ProgressFile): void {
+    file.createFileDto.tags = this.uniqueMergeTags(
+      file.createFileDto.tags,
+      this.globalTags
+    );
     const formData = new FormData();
-    file.createFileDto.untrustedName = file.browserFile.name;
-    file.createFileDto.tags = file.createFileDto.tags.concat(this.globalTags);
     formData.append('dto', JSON.stringify(file.createFileDto));
     formData.append('file', file.browserFile);
 
@@ -165,17 +173,11 @@ export class FileUploadComponent implements OnInit {
             file.status = 'success';
             this.removeFile(file);
             this.uploadedFiles.push(file);
-            this.onFilesUploaded.emit();
           }
         },
         (error) => {
           file.status = 'failed';
           console.error('Upload failed', error);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Upload failed',
-            detail: error.message,
-          });
         }
       );
     file.request = request;
@@ -200,5 +202,12 @@ export class FileUploadComponent implements OnInit {
     this.taggyAppApiService.getGroupById(id).subscribe((response) => {
       this.group = response.body!;
     });
+  }
+
+  private uniqueMergeTags(arr1: CreateTagDto[], arr2: CreateTagDto[]) {
+    return [
+      ...arr1,
+      ...arr2.filter((t2) => !arr1.some((t1) => t1.name === t2.name)),
+    ];
   }
 }

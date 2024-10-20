@@ -1,10 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  Output,
-} from '@angular/core';
+import { Component } from '@angular/core';
 import { GetGroupDto } from '../../../../models/dtos/group/getGroupDto';
 import { TaggyAppApiService } from '../../../../services/taggyAppApi.service';
 import { BadgeModule } from 'primeng/badge';
@@ -18,7 +12,8 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
 import { UpdateGroupDto } from '../../../../models/dtos/group/updateGroupDto';
 import { GroupStateService } from '../../../../services/groupStateService';
-import { GroupMembersComponent } from "../group-members/group-members.component";
+import { GroupMembersComponent } from '../group-members/group-members.component';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'group-info',
@@ -31,8 +26,8 @@ import { GroupMembersComponent } from "../group-members/group-members.component"
     ButtonModule,
     ConfirmDialogModule,
     TagAutocompleteComponent,
-    GroupMembersComponent
-],
+    GroupMembersComponent,
+  ],
   templateUrl: './group-info.component.html',
   styleUrl: './group-info.component.scss',
 })
@@ -42,6 +37,8 @@ export class GroupInfoComponent {
   groupEdit!: UpdateGroupDto;
   groupEditForm!: FormGroup;
   editing: boolean = false;
+  editLoading: boolean = false;
+  deleteLoading: boolean = false;
 
   constructor(
     private taggyApi: TaggyAppApiService,
@@ -53,7 +50,7 @@ export class GroupInfoComponent {
       if (!group) return;
       if (!this.selectedGroup) {
         this.selectedGroup = group;
-        this.initFileEditForm();
+        this.initGroupEditForm();
       } else {
         this.selectedGroup = group;
       }
@@ -61,17 +58,19 @@ export class GroupInfoComponent {
   }
 
   onSubmit() {
+    this.editLoading = true;
     this.taggyApi
       .updateGroup(this.selectedGroup.id, this.groupEdit)
+      .pipe(finalize(() => (this.editLoading = false)))
       .subscribe((response) => {
         this.groupState.setGroup(response.body!);
-        this.initFileEditForm();
+        this.initGroupEditForm();
         this.editing = false;
       });
   }
 
   onCancel() {
-    this.initFileEditForm();
+    this.initGroupEditForm();
     this.editing = false;
   }
 
@@ -85,15 +84,19 @@ export class GroupInfoComponent {
       rejectIcon: 'none',
       rejectButtonStyleClass: 'p-button-text',
       accept: () => {
-        this.taggyApi.deleteGroup(this.selectedGroup.id).subscribe(() => {
-          this.groupState.removeGroup();
-          this.groupState.initGroupState();
-        });
+        this.deleteLoading = true;
+        this.taggyApi
+          .deleteGroup(this.selectedGroup.id)
+          .pipe(finalize(() => (this.deleteLoading = false)))
+          .subscribe(() => {
+            this.groupState.removeGroup();
+            this.groupState.initGroupState();
+          });
       },
     });
   }
 
-  private initFileEditForm() {
+  private initGroupEditForm() {
     this.groupEdit = UpdateGroupDto.fromGetGroupDto(this.selectedGroup);
     this.groupEditForm = this.fb.formGroup(this.groupEdit);
   }

@@ -7,6 +7,7 @@ public class GetFileDto : GetDto
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
     public string Url { get; set; } = null!;
+    public string ThumbnailUrl { get; set; } = null!;
     public string ContentType { get; set; } = null!;
     public long Size { get; set; }
 

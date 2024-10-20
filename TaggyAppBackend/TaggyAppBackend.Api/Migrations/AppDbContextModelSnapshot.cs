@@ -236,6 +236,9 @@ namespace TaggyAppBackend.Api.Migrations
 
                     b.HasIndex("GroupId");
 
+                    b.HasIndex("UntrustedName", "GroupId")
+                        .IsUnique();
+
                     b.ToTable("Files");
                 });
 
@@ -282,6 +285,9 @@ namespace TaggyAppBackend.Api.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("GroupId");
+
+                    b.HasIndex("Name", "GroupId")
+                        .IsUnique();
 
                     b.ToTable("Tags");
                 });
