@@ -4,14 +4,28 @@ import { LocalStorageConstant } from '../constants/localStorage.constant';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 import { TokenDto } from '../models/dtos/auth/tokenDto';
 import { ApiTokenConstant } from '../constants/apiToken.constant';
+import { BehaviorSubject, filter, firstValueFrom, take } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
+  private tokenRefreshingSubject = new BehaviorSubject<boolean>(false);
+
   constructor(private taggyAppApiService: TaggyAppApiService) {}
 
   async tryAuthenticateUser(): Promise<boolean> {
+    // Await if token is already beain refreshed
+    if (this.tokenRefreshingSubject.getValue()) {
+      await firstValueFrom(
+        this.tokenRefreshingSubject.asObservable().pipe(
+          filter((refreshing) => refreshing === false),
+          take(1)
+        )
+      );
+      return Promise.resolve(true);
+    }
+
     let { accessToken, refreshToken } = this.getTokens();
 
     // Check if tokens are present
@@ -20,19 +34,11 @@ export class AuthService {
       return Promise.resolve(false);
     }
 
-    // Check token expiration and refresh if necessary
-    try {
-      const decoded = jwtDecode<JwtPayload>(accessToken);
-      const exp = decoded.exp! * 1000;
-      const maxExp = Date.now() + ApiTokenConstant.REFRESH_OFFSET * 1000;
-      if (exp > maxExp) {
-        console.log('Token is still valid');
-        return Promise.resolve(true);
-      }
-    } catch (error) {
-      console.error(error);
-      return Promise.resolve(false);
-    }
+    // Check token expiration
+    if (!this.isTokenExpired(accessToken)) return Promise.resolve(true);
+
+    // Refresh
+    this.tokenRefreshingSubject.next(true);
 
     const tokens = await this.refreshToken(refreshToken);
     if (!tokens) {
@@ -42,6 +48,8 @@ export class AuthService {
 
     this.setTokens(tokens);
     console.log('Token refreshed');
+
+    this.tokenRefreshingSubject.next(false);
 
     return Promise.resolve(true);
   }
@@ -61,6 +69,18 @@ export class AuthService {
       LocalStorageConstant.REFRESH_TOKEN,
       tokens.refreshToken
     );
+  }
+
+  private isTokenExpired(accessToken: string) {
+    try {
+      const decoded = jwtDecode<JwtPayload>(accessToken);
+      const exp = decoded.exp! * 1000;
+      const maxExp = Date.now() + ApiTokenConstant.REFRESH_OFFSET * 1000;
+      return maxExp > exp;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
   }
 
   private refreshToken(refreshToken: string): Promise<TokenDto | null> {

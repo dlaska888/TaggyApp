@@ -51,7 +51,7 @@ export class GroupMembersComponent implements OnInit {
 
   pagedGroupUsers!: PagedResults<GetGroupUserDto>;
   page: number = 1;
-  rows: number = 1;
+  rows: number = 10;
   skeletonArray = Array(5);
 
   addLoading: boolean = false;

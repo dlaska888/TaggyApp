@@ -48,7 +48,11 @@
 
 :host ::ng-deep .group-view {
   .p-dataview .p-dataview-content {
-    max-height: calc(100vh - 10rem);
+    max-height: calc(100vh - 150px);
     overflow-y: auto;
+
+    @media (max-width: 768px) {
+      max-height: calc(100vh - 215px);
+    }
   }
 }

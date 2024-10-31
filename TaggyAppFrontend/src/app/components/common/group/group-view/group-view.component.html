@@ -37,8 +37,9 @@
                         </div>
                      </p-overlayPanel>
                   </p-button>
-                  <input [(ngModel)]="nameQuery" class="w-full text-ellipsis"
-                     style="min-width: 150px; max-width: 500px;" [placeholder]="searchPlaceholder" pInputText />
+                  <input *ngIf="selectedGroup" [(ngModel)]="nameQuery" class="w-full text-ellipsis"
+                     style="min-width: 150px; max-width: 500px;"
+                     [placeholder]="'Search in ' + selectedGroup.name + '...'" pInputText />
                </div>
                <div class="flex align-items-center w-12 sm:w-9rem">
                   <p-dataViewLayoutOptions />

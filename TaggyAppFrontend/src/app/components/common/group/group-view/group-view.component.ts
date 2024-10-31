@@ -70,8 +70,6 @@ export class GroupViewComponent implements OnInit {
   menuOpenChange = new EventEmitter<boolean>(false);
 
   layout: 'list' | 'grid' = 'list';
-  searchPlaceholder: string = 'Search...';
-
   nameQuery: string = '';
 
   pagedFiles!: PagedResults<GetFileDto>;
@@ -219,11 +217,9 @@ export class GroupViewComponent implements OnInit {
     this.groupInfoVisible = false;
     this.taggyApi
       .getGroupById(this.selectedGroup.id)
-      .pipe(finalize(() => (this.loading = false)))
       .subscribe(
         (response) => {
           this.selectedGroup = response.body!;
-          this.searchPlaceholder = `Search in ${response.body!.name}...`;
           this.getFiles();
         },
         (error) => {
