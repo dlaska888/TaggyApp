@@ -29,11 +29,13 @@
             <div *ngFor="let file of files; let i = index"
                class="file-card card flex m-0 flex-column md:flex-row border-1 surface-border justify-content-between w-12 p-3 gap-3">
                <div class="flex-1 flex flex-column justify-content-center min-w-0 w-12 md:w-3">
-                  <input pInputText [(ngModel)]="file.createFileDto.untrustedName" placeholder="Name" />
+                  <input pInputText [(ngModel)]="file.createFileDto.untrustedName"
+                     [disabled]="file.status === 'uploading'" placeholder="Name" />
                </div>
                <div class="flex flex-row justify-content-evenly align-items-center w-12 md:w-8">
                   <div class="w-4">
-                     <tag-autocomplete [group]="group" [(tags)]="file.createFileDto.tags" />
+                     <tag-autocomplete [group]="group" [(tags)]="file.createFileDto.tags"
+                        [disabled]="file.status === 'uploading'" />
                   </div>
                   <div class="w-4 text-center white-space-nowrap">{{ file.browserFile.size | fileSize }}</div>
                   <div class="w-4 flex justify-content-center">

@@ -24,6 +24,9 @@ export class TagAutocompleteComponent {
   @Input()
   tags: CreateTagDto[] = [];
 
+  @Input()
+  disabled: boolean = false;
+
   @Output()
   tagsChange = new EventEmitter<CreateTagDto[]>();
 

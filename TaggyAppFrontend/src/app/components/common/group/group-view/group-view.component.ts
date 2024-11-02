@@ -32,7 +32,7 @@ import { FileViewDialogComponent } from '../../file/file-view-dialog/file-view-d
 import { TagAutocompleteComponent } from '../../tag-autocomplete/tag-autocomplete.component';
 import { GroupInfoComponent } from '../group-info/group-info.component';
 import { GroupSelectComponent } from '../group-select/group-select.component';
-import { finalize } from 'rxjs';
+import { filter, finalize } from 'rxjs';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 @UntilDestroy()
@@ -60,7 +60,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
     TagAutocompleteComponent,
     FileViewDialogComponent,
     GroupInfoComponent,
-    ProgressSpinnerModule
+    ProgressSpinnerModule,
   ],
   templateUrl: './group-view.component.html',
   styleUrl: './group-view.component.scss',
@@ -69,7 +69,7 @@ export class GroupViewComponent implements OnInit {
   @Output()
   menuOpenChange = new EventEmitter<boolean>(false);
 
-  layout: 'list' | 'grid' = 'list';
+  layout: 'list' | 'grid' = 'grid';
   nameQuery: string = '';
 
   pagedFiles!: PagedResults<GetFileDto>;
@@ -103,11 +103,13 @@ export class GroupViewComponent implements OnInit {
   }
 
   filePage: number = 1;
-  fileRows: number = 10;
-  fileRowsOptions: number[] = [10, 20, 50];
+  fileRows: number = 30;
+  // fileRowsOptions: number[] = [10, 20, 50];
 
   loading: boolean = true;
   skeletonArray: any[] = Array(this.fileRows);
+
+  supportedFileTypes: string[] = ['image', 'video', 'audio'];
 
   constructor(
     private taggyApi: TaggyAppApiService,
@@ -140,12 +142,13 @@ export class GroupViewComponent implements OnInit {
     ];
     this.groupState
       .getGroup$()
-      .pipe(untilDestroyed(this))
+      .pipe(
+        untilDestroyed(this),
+        filter((group) => group !== null)
+      )
       .subscribe((group) => {
-        if (group) {
-          this.selectedGroup = group;
-          this.refreshGroup();
-        }
+        this.selectedGroup = group;
+        this.refreshGroup();
       });
   }
 
@@ -196,12 +199,21 @@ export class GroupViewComponent implements OnInit {
     this.getFiles();
   }
 
+  onImageError(event: Event, file: GetFileDto) {
+    const imgElement = event.target as HTMLImageElement;
+    imgElement.src = file.url;
+  }
+
+  onFileSearch(){
+    this.getFiles();
+  }
+
   private getFiles(): void {
     const query = new SieveModelDto(
       this.filePage,
       this.fileRows,
       this.sort,
-      this.tagFilter
+      this.tagFilter + `,name@=${this.nameQuery}`
     );
     this.loading = true;
     this.taggyApi
@@ -215,16 +227,14 @@ export class GroupViewComponent implements OnInit {
   private refreshGroup(): void {
     this.loading = true;
     this.groupInfoVisible = false;
-    this.taggyApi
-      .getGroupById(this.selectedGroup.id)
-      .subscribe(
-        (response) => {
-          this.selectedGroup = response.body!;
-          this.getFiles();
-        },
-        (error) => {
-          console.error(error);
-        }
-      );
+    this.taggyApi.getGroupById(this.selectedGroup.id).subscribe(
+      (response) => {
+        this.selectedGroup = response.body!;
+        this.getFiles();
+      },
+      (error) => {
+        console.error(error);
+      }
+    );
   }
 }

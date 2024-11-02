@@ -4,18 +4,16 @@
    </div>
    <p-sidebar [(visible)]="menuBarVisible" [showCloseIcon]="false" styleClass="menu-sidebar w-screen max-w-30rem p-0">
       <ng-template pTemplate="header">
-         <div class="card flex-1 flex justify-content-between">
+         <div class="card flex-1 flex justify-content-between max-w-full">
             <p-button [text]="true" [severity]="'secondary'" (onClick)="menu.toggle($event)" icon="pi pi-bars" />
-               <span class="p-input-icon-left">
-                  <i class="pi pi-search"></i>
-                  <input type="text" pInputText placeholder="Search" [formControl]="nameQuery">
-               </span>
+            <input type="text" pInputText placeholder="Search" [formControl]="nameQuery">
             <p-button [text]="true" [severity]="'secondary'" (onClick)="menuBarVisible = false" icon="pi pi-times" />
          </div>
          <p-menu #menu [model]="items" [popup]="true" />
       </ng-template>
       <div class="group-select">
-         <group-select *ngIf="reloadGroups !== null" [reloadGroups]="reloadGroups!" [groupNameQuery]="nameQuery.getRawValue()" />
+         <group-select *ngIf="reloadGroups !== null" [reloadGroups]="reloadGroups!"
+            [groupNameQuery]="nameQuery.getRawValue()" />
       </div>
    </p-sidebar>
    <p-sidebar [(visible)]="addGroupVisible" styleClass="w-screen max-w-30rem">

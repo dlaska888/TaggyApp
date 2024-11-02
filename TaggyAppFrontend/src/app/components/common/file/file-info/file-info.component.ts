@@ -20,7 +20,7 @@ import { RxFormBuilder } from '@rxweb/reactive-form-validators';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
-import { finalize } from 'rxjs';
+import { filter, finalize } from 'rxjs';
 import { GroupStateService } from '../../../../services/groupStateService';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
@@ -36,7 +36,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
     ButtonModule,
     ConfirmDialogModule,
     TagAutocompleteComponent,
-    ProgressSpinnerModule
+    ProgressSpinnerModule,
   ],
   templateUrl: './file-info.component.html',
   styleUrl: './file-info.component.scss',
@@ -62,9 +62,12 @@ export class FileInfoComponent implements OnInit, OnChanges {
   ) {}
 
   ngOnInit(): void {
-    this.groupService.getGroup$().subscribe((group) => {
-      if (group) this.group = group;
-    });
+    this.groupService
+      .getGroup$()
+      .pipe(filter((group) => group !== null))
+      .subscribe((group) => {
+        this.group = group;
+      });
   }
 
   ngOnChanges(): void {
@@ -73,7 +76,6 @@ export class FileInfoComponent implements OnInit, OnChanges {
 
   onSubmit() {
     this.editLoading = true;
-    console.log(this.editLoading);
     this.apiService
       .updateFile(this.group.id, this.file.id, this.fileEdit)
       .pipe(finalize(() => (this.editLoading = false)))

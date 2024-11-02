@@ -12,7 +12,7 @@
                      (onClick)="op.toggle($event)">
                      <p-overlayPanel #op header="Filter files" [style]="{ width: '100vw', maxWidth:'550px'}"
                         [focusOnShow]="true">
-                        <div *ngIf="!loading">
+                        <div *ngIf="selectedGroup">
                            <div class="flex">
                               <p-dropdown class="w-8" [options]="sortOptions" [showClear]="true" [checkmark]="true"
                                  (onChange)="onSortChange($event)" [style]="{'width':'100%'}" placeholder="Sort"
@@ -32,14 +32,14 @@
                               </p-dropdown>
                            </div>
                         </div>
-                        <div *ngIf="loading" class="flex justify-content-center">
+                        <div *ngIf="!selectedGroup" class="flex justify-content-center">
                            <p-progressSpinner styleClass="w-3rem h-3rem"></p-progressSpinner>
                         </div>
                      </p-overlayPanel>
                   </p-button>
-                  <input *ngIf="selectedGroup" [(ngModel)]="nameQuery" class="w-full text-ellipsis"
-                     style="min-width: 150px; max-width: 500px;"
-                     [placeholder]="'Search in ' + selectedGroup.name + '...'" pInputText />
+                  <input *ngIf="selectedGroup" pInputText [(ngModel)]="nameQuery"
+                     [placeholder]="'Search in ' + selectedGroup.name + '...'" (keyup.enter)="onFileSearch()"
+                     class="w-full text-ellipsis" style="min-width: 150px; max-width: 500px;" />
                </div>
                <div class="flex align-items-center w-12 sm:w-9rem">
                   <p-dataViewLayoutOptions />
@@ -50,13 +50,12 @@
          </ng-template>
          <ng-template pTemplate="list" let-file>
             <div *ngIf="!loading; else fileLoading">
-               <div *ngFor="let file of pagedFiles?.items"
-                  class="p-card flex flex-column md:flex-row align-items-center p-2 gap-2"
+               <div *ngFor="let file of pagedFiles?.items" class="p-card flex align-items-center p-2 gap-2"
                   (click)="onFileSelected(file)">
-                  <div class="w-12 md:w-3">
+                  <div class="w-12 sm:w-5">
                      <h5 class="card-title text-ellipsis">{{ file.name }}</h5>
                   </div>
-                  <div class="w-12 md:w-9 flex align-items-center gap-3">
+                  <div class="w-7 hidden sm:flex align-items-center gap-3">
                      <div
                         class="flex flex-grow-0 flex-shrink-0 align-items-center gap-2 w-6 overflow-x-auto overflow-y-hidden">
                         <p-badge *ngFor="let tag of file.tags" [value]="tag.name"></p-badge>
@@ -83,18 +82,48 @@
             </ng-template>
          </ng-template>
          <ng-template let-file pTemplate="grid" let-files>
-            <div class="grid grid-nogutter">
-               <div class="col-12 sm:col-6 md:col-4 xl:col-3 p-2" *ngFor="let file of files"
-                  (click)="onFileSelected(file)">
-                  <div class="image-container">
-                     <img class="border-round w-full h-full" [src]="file.thumbnailUrl" [alt]="file.name" />
+            <div class="grid grid-nogutter p-2">
+               <ng-container *ngIf="!loading else fileLoading">
+                  <div *ngFor="let file of files" (click)="onFileSelected(file)"
+                     class="col-6 md:col-4 lg:col-3 xl:col-2 p-2">
+                     <div *ngIf="!loading else fileLoading" class="flex flex-column gap-2">
+                        <div class="flex-1">
+                           <ng-container
+                              *ngIf="supportedFileTypes.includes(file.contentType.split('/')[0]) else otherFile">
+                              <div class="image-container overflow-hidden">
+                                 <img *ngIf="file.contentType.startsWith('image/')" class="border-round w-full h-full"
+                                    [src]="file.thumbnailUrl" [alt]="file.name" (error)="onImageError($event, file)" />
+                                 <video *ngIf="file.contentType.startsWith('video/')" [src]="file.url"
+                                    class="border-round w-full h-full">
+                                 </video>
+                                 <div *ngIf="file.contentType.startsWith('audio/')" class="absolute-center">
+                                    <i class="pi pi-play" style="font-size: 2rem"></i>
+                                 </div>
+                              </div>
+                           </ng-container>
+                           <ng-template #otherFile>
+                              <div #otherFile class="file-container">
+                                 <i class="pi pi-file" style="font-size: 2rem"></i>
+                              </div>
+                           </ng-template>
+                        </div>
+                        <div class="badge-container">
+                           <p-badge *ngFor="let tag of file.tags" [value]="tag.name"></p-badge>
+                        </div>
+                        <p class="text-ellipsis text-center m-0">{{file.name}}</p>
+                     </div>
                   </div>
-               </div>
+               </ng-container>
+               <ng-template #fileLoading>
+                  <div *ngFor="let _ of skeletonArray" class="col-6 md:col-4 lg:col-3 xl:col-2 aspect-square p-2">
+                     <p-skeleton class="p-card" height="100%"></p-skeleton>
+                  </div>
+               </ng-template>
             </div>
          </ng-template>
       </p-dataView>
-      <p-paginator *ngIf="pagedFiles" [rows]="fileRows" [rowsPerPageOptions]="fileRowsOptions"
-         [totalRecords]="pagedFiles.totalItems" (onPageChange)="onPageChange($event)" />
+      <p-paginator *ngIf="pagedFiles" [rows]="fileRows" [totalRecords]="pagedFiles.totalItems"
+         (onPageChange)="onPageChange($event)" class="p-0" />
    </div>
    <p-button label="Add" icon="pi pi-plus" class="add-button" [rounded]="true" [raised]="true"
       (onClick)="fileUploadVisible = !fileUploadVisible" />

@@ -38,7 +38,7 @@ public class BlobRepo : IBlobRepo
             BlobContainerName = containerName,
             BlobName = blobName,
             Resource = "b",
-            ContentDisposition = $"attachment; filename={friendlyName ?? blobName}"
+            ContentDisposition = $"attachment; filename={Uri.EscapeDataString(friendlyName ?? blobName)}"
         };
 
         sasBuilder.SetPermissions(BlobSasPermissions.Read);

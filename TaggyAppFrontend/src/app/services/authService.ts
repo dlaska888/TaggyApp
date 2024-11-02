@@ -71,19 +71,7 @@ export class AuthService {
     );
   }
 
-  private isTokenExpired(accessToken: string) {
-    try {
-      const decoded = jwtDecode<JwtPayload>(accessToken);
-      const exp = decoded.exp! * 1000;
-      const maxExp = Date.now() + ApiTokenConstant.REFRESH_OFFSET * 1000;
-      return maxExp > exp;
-    } catch (error) {
-      console.error(error);
-      return false;
-    }
-  }
-
-  private refreshToken(refreshToken: string): Promise<TokenDto | null> {
+  refreshToken(refreshToken: string): Promise<TokenDto | null> {
     return new Promise((resolve, reject) => {
       this.taggyAppApiService.refreshToken(refreshToken).subscribe({
         next: (response) => {
@@ -100,5 +88,17 @@ export class AuthService {
         },
       });
     });
+  }
+
+  private isTokenExpired(accessToken: string) {
+    try {
+      const decoded = jwtDecode<JwtPayload>(accessToken);
+      const exp = decoded.exp! * 1000;
+      const maxExp = Date.now() + ApiTokenConstant.REFRESH_OFFSET * 1000;
+      return maxExp > exp;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
   }
 }

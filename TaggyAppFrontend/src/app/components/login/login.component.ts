@@ -22,6 +22,8 @@ import { TokenDto } from '../../models/dtos/auth/tokenDto';
 import { Router, RouterModule } from '@angular/router';
 import { PathConstant } from '../../constants/path.constant';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { filter, finalize } from 'rxjs';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 @UntilDestroy()
 @Component({
@@ -37,6 +39,7 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
     SocialLoginModule,
     GoogleSigninButtonModule,
     RouterModule,
+    ProgressSpinnerModule
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
@@ -55,6 +58,9 @@ export class LoginComponent implements OnInit, OnDestroy {
     ]),
   });
 
+  loginLoading: boolean = false;
+  googleLoading: boolean = false;
+
   constructor(
     private api: TaggyAppApiService,
     private socialAuth: SocialAuthService,
@@ -64,22 +70,28 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.tryNavigateToDashboard();
-    this.socialAuth.authState.pipe(untilDestroyed(this)).subscribe((user) => {
-      if (!user) return;
-      this.api
-        .googleLogin({
-          provider: user.provider,
-          idToken: user.idToken,
-        })
-        .subscribe(async (response: HttpResponse<TokenDto>) => {
-          if (!response.ok || !response.body) {
-            console.error(response);
-            return;
-          }
-          this.authService.setTokens(response.body);
-          this.tryNavigateToDashboard();
-        });
-    });
+    this.socialAuth.authState
+      .pipe(
+        untilDestroyed(this),
+        filter((user) => user !== null)
+      )
+      .subscribe((user) => {
+        this.googleLoading = true;
+        this.api
+          .googleLogin({
+            provider: user.provider,
+            idToken: user.idToken,
+          })
+          .pipe(finalize(() => (this.googleLoading = false)))
+          .subscribe(async (response: HttpResponse<TokenDto>) => {
+            if (!response.ok || !response.body) {
+              console.error(response);
+              return;
+            }
+            this.authService.setTokens(response.body);
+            this.tryNavigateToDashboard();
+          });
+      });
   }
 
   ngOnDestroy() {
@@ -87,11 +99,13 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
+    this.loginLoading = true;
     this.api
       .login({
         userName: this.loginForm.value.userName!,
         password: this.loginForm.value.password!,
       })
+      .pipe(finalize(() => (this.loginLoading = false)))
       .subscribe((response: HttpResponse<TokenDto>) => {
         if (!response.ok || !response.body) {
           console.error(response);

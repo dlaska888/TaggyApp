@@ -28,7 +28,7 @@ export function errorMessageInterceptorFn(
       } else {
         messageService.add({
           severity: 'error',
-          detail: response.error.detail
+          detail: response.error?.detail
             ? response.error.detail
             : 'An error occurred while processing your request',
         });

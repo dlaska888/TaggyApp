@@ -83,7 +83,6 @@ export class GroupSelectComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log(changes);
     if (changes['groupNameQuery']?.firstChange) return;
     clearTimeout(this.groupTimeout);
     this.groupTimeout = setTimeout(() => {

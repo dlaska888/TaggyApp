@@ -66,7 +66,7 @@ public class FileService(
     {
         if (await FindFileByName(groupId, dto.UntrustedName) is not null)
             throw new BadRequestException($"{dto.UntrustedName} already exists");
-        
+
         await groupUserService.VerifyGroupAccess(groupId);
 
         var file = mapper.Map<File>(dto);
@@ -96,11 +96,11 @@ public class FileService(
     public async Task<GetFileDto> Update(string groupId, string fileId, UpdateFileDto dto)
     {
         var file = await FindFile(groupId, fileId);
-        
+
         if (file.CreatorId != authContext.GetUserId())
             await groupUserService.VerifyGroupAccess(file.GroupId, GroupRole.Admin);
-        
-        if(file.UntrustedName != dto.Name && await FindFileByName(groupId, dto.Name) is not null)
+
+        if (file.UntrustedName != dto.Name && await FindFileByName(groupId, dto.Name) is not null)
             throw new BadRequestException($"{dto.Name} already exists");
 
         mapper.Map(dto, file);
@@ -133,17 +133,21 @@ public class FileService(
         var group = await FindGroup(file.GroupId);
 
         // Create new tags from dto
-        file.Tags = new List<Tag>();
+        var newTags = new List<Tag>();
         foreach (var tagDto in tags)
         {
             var found = group.Tags.FirstOrDefault(t => t.Name == tagDto.Name);
             var tag = found ?? new Tag { Name = tagDto.Name };
 
-            file.Tags.Add(tag);
+            newTags.Add(tag);
 
             if (found is null)
                 group.Tags.Add(tag);
         }
+
+        // Remove orphan tags
+        dbContext.Tags.RemoveRange(file.Tags.Where(t => t.Files.Count == 1 && !newTags.Contains(t)));
+        file.Tags = newTags;
 
         await dbContext.SaveChangesAsync();
 
@@ -206,7 +210,8 @@ public class FileService(
     private async Task<GetFileDto> MapFileToDto(File file)
     {
         var mapped = mapper.Map<GetFileDto>(file);
-        mapped.Url = await blobRepo.GetBlobDownloadPath(file.TrustedName, _blobOptionsValue.Container, file.UntrustedName);
+        mapped.Url =
+            await blobRepo.GetBlobDownloadPath(file.TrustedName, _blobOptionsValue.Container, file.UntrustedName);
         mapped.Tags = file.Tags.OrderBy(t => t.Name).Select(mapper.Map<GetTagDto>).ToList();
         if (file.ContentType.StartsWith("image/"))
             mapped.ThumbnailUrl =

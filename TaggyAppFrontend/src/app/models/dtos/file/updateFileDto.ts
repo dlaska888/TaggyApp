@@ -24,7 +24,7 @@ export class UpdateFileDto {
     const dto = new UpdateFileDto();
     dto.name = file.name;
     dto.description = file.description;
-    dto.tags = file.tags;
+    dto.tags = [...file.tags];
     return dto;
   }
 }
