@@ -51,6 +51,22 @@ export class GroupStateService {
     this.localStorage.removeItem(LocalStorageConstant.SELECTED_GROUP);
   }
 
+  refreshGroup() {
+    if (!this.group.value) {
+      console.error('Refreshing null group state!');
+      return;
+    }
+
+    this.apiService.getGroupById(this.group.value.id).subscribe(
+      (response) => {
+        this.group.next(response.body);
+      },
+      (error) => {
+        console.error(error);
+      }
+    );
+  }
+
   private setFirstGroup() {
     this.apiService.getGroups().subscribe(
       (response) => {

@@ -37,9 +37,10 @@
                         </div>
                      </p-overlayPanel>
                   </p-button>
-                  <input *ngIf="selectedGroup" pInputText [(ngModel)]="nameQuery"
-                     [placeholder]="'Search in ' + selectedGroup.name + '...'" (keyup.enter)="onFileSearch()"
-                     class="w-full text-ellipsis" style="min-width: 150px; max-width: 500px;" />
+                  <input pInputText [(ngModel)]="nameQuery"
+                     [placeholder]="'Search in ' + (loading ? '' : selectedGroup.name) + '...'"
+                     (keyup.enter)="onFileSearch()" class="w-full text-ellipsis"
+                     style="min-width: 150px; max-width: 500px;" />
                </div>
                <div class="flex align-items-center w-12 sm:w-9rem">
                   <p-dataViewLayoutOptions />
@@ -137,11 +138,10 @@
    <p-sidebar class="relative" appendTo="body" [(visible)]="fileUploadVisible" [fullScreen]="true" [position]="'bottom'"
       [transitionOptions]="'200ms'">
       <ng-template pTemplate="headless">
-         <file-upload [group]="selectedGroup"></file-upload>
+         <file-upload></file-upload>
          <p-button icon="pi pi-angle-double-down" class="upload-close-button" [rounded]="true"
             (onClick)="onHideFileUpload()"></p-button>
       </ng-template>
    </p-sidebar>
-   <file-view-dialog *ngIf="selectedFile" [file]="selectedFile" [(visible)]="fileViewVisible"
-      (fileChange)="onFileChanged()" (fileDelete)="onFileDeleted()" />
+   <file-view-dialog *ngIf="selectedFile" [file]="selectedFile" [(visible)]="fileViewVisible" />
 </div>

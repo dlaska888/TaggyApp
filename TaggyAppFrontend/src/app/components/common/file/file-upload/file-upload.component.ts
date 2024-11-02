@@ -38,6 +38,8 @@ import { GroupSelectComponent } from '../../group/group-select/group-select.comp
 import { TagAutocompleteComponent } from '../../tag-autocomplete/tag-autocomplete.component';
 import { FileViewDialogComponent } from '../file-view-dialog/file-view-dialog.component';
 import { InputTextModule } from 'primeng/inputtext';
+import { GroupStateService } from '../../../../services/groupStateService';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'file-upload',
@@ -66,6 +68,8 @@ import { InputTextModule } from 'primeng/inputtext';
   providers: [MessageService],
 })
 export class FileUploadComponent implements OnInit {
+  group!: GetGroupDto;
+
   files: ProgressFile[] = [];
   uploadedFiles: ProgressFile[] = [];
 
@@ -77,19 +81,19 @@ export class FileUploadComponent implements OnInit {
 
   globalTags: CreateTagDto[] = [];
 
-  @Input()
-  group!: GetGroupDto;
-
   @Output()
   onFilesUploaded: EventEmitter<void> = new EventEmitter<void>();
 
   constructor(
-    private taggyAppApiService: TaggyAppApiService,
-    private cdr: ChangeDetectorRef
+    private api: TaggyAppApiService,
+    private groupState: GroupStateService
   ) {}
 
   ngOnInit() {
-    this.getGroup(this.group.id);
+    this.groupState
+      .getGroup$()
+      .pipe(filter((g) => g !== null))
+      .subscribe((group) => (this.group = group));
   }
 
   uploadHandler(event: FileUploadHandlerEvent) {
@@ -161,25 +165,23 @@ export class FileUploadComponent implements OnInit {
     formData.append('file', file.browserFile);
 
     file.status = 'uploading';
-    const request = this.taggyAppApiService
-      .createFile(this.group.id, formData)
-      .subscribe(
-        (event: HttpEvent<any>) => {
-          if (event.type === HttpEventType.UploadProgress) {
-            if (event.total) {
-              file.progress = Math.round((100 * event.loaded) / event.total);
-            }
-          } else if (event.type === HttpEventType.Response) {
-            file.status = 'success';
-            this.removeFile(file);
-            this.uploadedFiles.push(file);
+    const request = this.api.createFile(this.group.id, formData).subscribe(
+      (event: HttpEvent<any>) => {
+        if (event.type === HttpEventType.UploadProgress) {
+          if (event.total) {
+            file.progress = Math.round((100 * event.loaded) / event.total);
           }
-        },
-        (error) => {
-          file.status = 'failed';
-          console.error('Upload failed', error);
+        } else if (event.type === HttpEventType.Response) {
+          file.status = 'success';
+          this.removeFile(file);
+          this.uploadedFiles.push(file);
         }
-      );
+      },
+      (error) => {
+        file.status = 'failed';
+        console.error('Upload failed', error);
+      }
+    );
     file.request = request;
   }
 
@@ -196,12 +198,6 @@ export class FileUploadComponent implements OnInit {
     );
     this.totalSize -= file.browserFile.size || 0;
     this.totalSizePercent = (this.totalSize / this.sizeLimit) * 100;
-  }
-
-  private getGroup(id: string): void {
-    this.taggyAppApiService.getGroupById(id).subscribe((response) => {
-      this.group = response.body!;
-    });
   }
 
   private uniqueMergeTags(arr1: CreateTagDto[], arr2: CreateTagDto[]) {

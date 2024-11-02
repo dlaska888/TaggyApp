@@ -56,13 +56,13 @@ export class FileInfoComponent implements OnInit, OnChanges {
 
   constructor(
     private apiService: TaggyAppApiService,
-    private groupService: GroupStateService,
+    private groupState: GroupStateService,
     private confirmationService: ConfirmationService,
     private fb: RxFormBuilder
   ) {}
 
   ngOnInit(): void {
-    this.groupService
+    this.groupState
       .getGroup$()
       .pipe(filter((group) => group !== null))
       .subscribe((group) => {
@@ -81,8 +81,8 @@ export class FileInfoComponent implements OnInit, OnChanges {
       .pipe(finalize(() => (this.editLoading = false)))
       .subscribe((response) => {
         this.file = response.body!;
-        this.fileChange.emit(this.file);
         this.editing = false;
+        this.groupState.refreshGroup();
       });
   }
 
@@ -106,7 +106,7 @@ export class FileInfoComponent implements OnInit, OnChanges {
           .deleteFile(this.group.id, this.file.id)
           .pipe(finalize(() => (this.deleteLoading = false)))
           .subscribe(() => {
-            this.fileDelete.emit();
+            this.groupState.refreshGroup();
           });
       },
     });

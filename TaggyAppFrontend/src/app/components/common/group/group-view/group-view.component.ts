@@ -148,7 +148,8 @@ export class GroupViewComponent implements OnInit {
       )
       .subscribe((group) => {
         this.selectedGroup = group;
-        this.refreshGroup();
+        this.groupInfoVisible = false;
+        this.getFiles();
       });
   }
 
@@ -158,20 +159,12 @@ export class GroupViewComponent implements OnInit {
 
   onHideFileUpload(): void {
     this.fileUploadVisible = false;
-    this.refreshGroup();
+    this.groupState.refreshGroup();
   }
 
   onFileSelected(file: GetFileDto): void {
     this.selectedFile = file;
     this.fileViewVisible = true;
-  }
-
-  onFileChanged(): void {
-    this.refreshGroup();
-  }
-
-  onFileDeleted(): void {
-    this.refreshGroup();
   }
 
   onPageChange(event: PaginatorState) {
@@ -223,18 +216,5 @@ export class GroupViewComponent implements OnInit {
         this.pagedFiles = response.body!;
       });
   }
-
-  private refreshGroup(): void {
-    this.loading = true;
-    this.groupInfoVisible = false;
-    this.taggyApi.getGroupById(this.selectedGroup.id).subscribe(
-      (response) => {
-        this.selectedGroup = response.body!;
-        this.getFiles();
-      },
-      (error) => {
-        console.error(error);
-      }
-    );
-  }
+  
 }
