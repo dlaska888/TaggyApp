@@ -1,5 +1,5 @@
 import { HttpEvent, HttpHandlerFn, HttpRequest } from '@angular/common/http';
-import { catchError, from, Observable, switchMap } from 'rxjs';
+import { catchError, from, Observable, switchMap, throwError } from 'rxjs';
 import { inject } from '@angular/core';
 import { AuthService } from '../services/authService';
 import { ApiTokenConstant } from '../constants/apiToken.constant';
@@ -24,7 +24,7 @@ export function authInterceptorFn(
     switchMap(() => {
       return next(reqWithToken()).pipe(
         catchError((error) => {
-          if (error.status !== 401) throw error;
+          if (error.status !== 401) return throwError(() => error);
           return from(authService.refreshToken()).pipe(
             switchMap(() => {
               return next(reqWithToken());
