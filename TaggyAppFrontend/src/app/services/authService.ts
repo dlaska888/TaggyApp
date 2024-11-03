@@ -4,7 +4,9 @@ import { LocalStorageConstant } from '../constants/localStorage.constant';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 import { TokenDto } from '../models/dtos/auth/tokenDto';
 import { ApiTokenConstant } from '../constants/apiToken.constant';
-import { BehaviorSubject, filter, firstValueFrom, take } from 'rxjs';
+import { BehaviorSubject, filter, finalize, firstValueFrom, take } from 'rxjs';
+import { Router } from '@angular/router';
+import { PathConstant } from '../constants/path.constant';
 
 @Injectable({
   providedIn: 'root',
@@ -12,47 +14,10 @@ import { BehaviorSubject, filter, firstValueFrom, take } from 'rxjs';
 export class AuthService {
   private tokenRefreshingSubject = new BehaviorSubject<boolean>(false);
 
-  constructor(private taggyAppApiService: TaggyAppApiService) {}
-
-  async tryAuthenticateUser(): Promise<boolean> {
-    // Await if token is already beain refreshed
-    if (this.tokenRefreshingSubject.getValue()) {
-      await firstValueFrom(
-        this.tokenRefreshingSubject.asObservable().pipe(
-          filter((refreshing) => refreshing === false),
-          take(1)
-        )
-      );
-      return Promise.resolve(true);
-    }
-
-    let { accessToken, refreshToken } = this.getTokens();
-
-    // Check if tokens are present
-    if (!accessToken || !refreshToken) {
-      console.log('No tokens found');
-      return Promise.resolve(false);
-    }
-
-    // Check token expiration
-    if (!this.isTokenExpired(accessToken)) return Promise.resolve(true);
-
-    // Refresh
-    this.tokenRefreshingSubject.next(true);
-
-    const tokens = await this.refreshToken(refreshToken);
-    if (!tokens) {
-      console.log('Failed to refresh token');
-      return Promise.resolve(false);
-    }
-
-    this.setTokens(tokens);
-    console.log('Token refreshed');
-
-    this.tokenRefreshingSubject.next(false);
-
-    return Promise.resolve(true);
-  }
+  constructor(
+    private taggyAppApiService: TaggyAppApiService,
+    private router: Router
+  ) {}
 
   getTokens(): TokenDto {
     return {
@@ -71,23 +36,51 @@ export class AuthService {
     );
   }
 
-  refreshToken(refreshToken: string): Promise<TokenDto | null> {
-    return new Promise((resolve, reject) => {
-      this.taggyAppApiService.refreshToken(refreshToken).subscribe({
-        next: (response) => {
-          if (!response.ok || !response.body) {
-            console.error(response);
-            return resolve(null);
-          }
+  async tryAuthenticateUser(): Promise<boolean> {
+    let { accessToken, refreshToken } = this.getTokens();
+    if (!accessToken || !refreshToken) return Promise.resolve(false);
 
-          return resolve(response.body);
-        },
-        error: (error) => {
-          console.error(error);
-          return resolve(null);
-        },
-      });
+    if (!this.isTokenExpired(accessToken)) return Promise.resolve(true);
+
+    await this.refreshToken();
+
+    return Promise.resolve(true);
+  }
+
+  async refreshToken(): Promise<void> {
+    if (await this.isTokenRefreshing()) return Promise.resolve(); // No need to refresh token
+    this.tokenRefreshingSubject.next(true);
+
+    const { refreshToken } = this.getTokens();
+
+    return new Promise((resolve, reject) => {
+      this.taggyAppApiService
+        .refreshToken(refreshToken)
+        .pipe(finalize(() => this.tokenRefreshingSubject.next(false)))
+        .subscribe({
+          next: (response) => {
+            if (!response.ok || !response.body) {
+              console.error(response);
+              this.redirectToLogin();
+              return reject(response);
+            }
+            this.setTokens(response.body);
+            console.log('Tokens refreshed');
+            return resolve();
+          },
+          error: (error) => {
+            console.error(error);
+            this.redirectToLogin();
+            return reject(error);
+          },
+        });
     });
+  }
+
+  private redirectToLogin(): void {
+    localStorage.clear();
+    console.log('Redirecting to login page');
+    this.router.navigate([PathConstant.LOGIN]);
   }
 
   private isTokenExpired(accessToken: string) {
@@ -95,10 +88,24 @@ export class AuthService {
       const decoded = jwtDecode<JwtPayload>(accessToken);
       const exp = decoded.exp! * 1000;
       const maxExp = Date.now() + ApiTokenConstant.REFRESH_OFFSET * 1000;
+      if (maxExp > exp) console.log('Token expired!');
       return maxExp > exp;
     } catch (error) {
       console.error(error);
       return false;
     }
+  }
+
+  private async isTokenRefreshing(): Promise<boolean> {
+    if (this.tokenRefreshingSubject.getValue()) {
+      await firstValueFrom(
+        this.tokenRefreshingSubject.asObservable().pipe(
+          filter((refreshing) => refreshing === false),
+          take(1)
+        )
+      );
+      return true;
+    }
+    return false;
   }
 }

@@ -17,21 +17,26 @@ export function errorMessageInterceptorFn(
   const messageService = inject(MessageService);
   return next(req).pipe(
     catchError((response: HttpErrorResponse) => {
-      if (response.status === 400) {
-        messageService.add({
-          severity: 'error',
-          detail: response.error.errors
-            ? Object.values(response.error.errors)[0] as string
-            : 'An error occurred while processing your request',
-          life: UIConfigConstant.ERROR_MESSAGE_LIFE,
-        });
-      } else {
-        messageService.add({
-          severity: 'error',
-          detail: response.error?.detail
-            ? response.error.detail
-            : 'An error occurred while processing your request',
-        });
+      switch (response.status) {
+        case 401:
+          break;
+        case 400:
+          messageService.add({
+            severity: 'error',
+            detail: response.error.errors
+              ? (Object.values(response.error.errors)[0] as string)
+              : 'An error occurred while processing your request',
+            life: UIConfigConstant.ERROR_MESSAGE_LIFE,
+          });
+          break;
+        default:
+          messageService.add({
+            severity: 'error',
+            detail: response.error?.detail
+              ? response.error.detail
+              : 'An error occurred while processing your request',
+          });
+          break;
       }
       return throwError(response);
     })
