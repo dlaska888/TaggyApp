@@ -75,8 +75,7 @@ public class AuthService(
 
     public async Task<TokenDto> Refresh(string refreshToken)
     {
-        var user = userManager.Users.SingleOrDefault(u =>
-            u.RefreshToken == refreshToken && u.RefreshTokenExp > DateTime.UtcNow);
+        var user = userManager.Users.SingleOrDefault(u => u.RefreshToken == refreshToken);
 
         if (user == null)
         {
@@ -155,7 +154,7 @@ public class AuthService(
         var refreshToken = jwtHandler.GenerateRefreshToken();
 
         user.RefreshToken = refreshToken;
-        user.RefreshTokenExp = DateTime.UtcNow.AddMinutes(Convert.ToDouble(_jwtOptions.RefreshExpirationTime));
+        user.RefreshTokenExp = DateTime.UtcNow.AddMinutes(_jwtOptions.RefreshExpirationTime);
         await userManager.UpdateAsync(user);
 
         return new TokenDto { AccessToken = token, RefreshToken = refreshToken };
