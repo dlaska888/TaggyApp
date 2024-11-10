@@ -38,7 +38,7 @@ public class BlobRepo : IBlobRepo
             BlobContainerName = containerName,
             BlobName = blobName,
             Resource = "b",
-            ContentDisposition = $"attachment; filename={friendlyName ?? blobName}"
+            ContentDisposition = $"attachment; filename={Uri.EscapeDataString(friendlyName ?? blobName)}"
         };
 
         sasBuilder.SetPermissions(BlobSasPermissions.Read);
@@ -59,7 +59,7 @@ public class BlobRepo : IBlobRepo
         };
 
         sasBuilder.SetPermissions(BlobContainerSasPermissions.Read);
-        sasBuilder.ExpiresOn = DateTimeOffset.UtcNow.AddHours(_options.SasTokenExpirationTime);
+        sasBuilder.ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(_options.SasTokenExpirationTime);
 
         var sasQuery =
             sasBuilder.ToSasQueryParameters(new StorageSharedKeyCredential(_options.StorageAccount, _options.Key));

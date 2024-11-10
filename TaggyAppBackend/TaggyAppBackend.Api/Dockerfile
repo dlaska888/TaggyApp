@@ -11,7 +11,6 @@ COPY ["TaggyAppBackend.Api/TaggyAppBackend.Api.csproj", "TaggyAppBackend.Api/"]
 RUN dotnet restore "TaggyAppBackend.Api/TaggyAppBackend.Api.csproj"
 COPY . .
 WORKDIR "/src/TaggyAppBackend.Api"
-RUN dotnet ef database update
 RUN dotnet build "TaggyAppBackend.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish

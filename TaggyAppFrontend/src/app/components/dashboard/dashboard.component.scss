@@ -11,51 +11,28 @@
     height: 100vh;
   }
 
-  .add-button {
-    max-height: 100vh;
-    position: absolute;
-    bottom: 3rem;
-    right: 4rem;
+  .group-select {
+    height: calc(100vh - 86px);
   }
-
-  .image-container {
-    width: 100%;
-    padding-top: 100%;
-    position: relative;
-  }
-
-  .image-container img {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 10px;
-  }
-
-  .info-close-button {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-  }
-}
-
-.upload-close-button {
-  position: absolute;
-  bottom: 1rem;
-  left: 50%;
-  transform: translate(-50%, -50%);
 }
 
 :host ::ng-deep .dashboard {
-  .p-dataview .p-dataview-content {
-    max-height: calc(100vh - 10rem);
-    overflow-y: auto;
+  input{
+    min-width: 200px;
   }
 
   .p-sidebar {
     padding: 0;
     max-height: 100vh;
+  }
+
+  .menu-sidebar .p-sidebar-header {
+    padding: 0.5rem;
+    padding-top: 1rem;
+    max-width: 100vw;
+  }
+
+  .menu-sidebar .p-sidebar-content {
+    padding: 0;
   }
 }

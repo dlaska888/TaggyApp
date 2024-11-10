@@ -16,7 +16,6 @@ import {
   Validators,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { ExternalAuthDto } from '../../models/dtos/auth/externalAuthDto';
 import { passwordMatchValidator } from '../../validators/passwordMatch.validator';
 import { passwordValidator } from '../../validators/password.validator';
 import { TransConstant } from '../../constants/trans.constant';
@@ -25,7 +24,11 @@ import { HttpResponse } from '@angular/common/http';
 import { TokenDto } from '../../models/dtos/auth/tokenDto';
 import { PathConstant } from '../../constants/path.constant';
 import { Router, RouterModule } from '@angular/router';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { filter, finalize } from 'rxjs';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
+@UntilDestroy()
 @Component({
   selector: 'app-register',
   standalone: true,
@@ -38,18 +41,18 @@ import { Router, RouterModule } from '@angular/router';
     FloatLabelModule,
     SocialLoginModule,
     GoogleSigninButtonModule,
-    RouterModule
+    RouterModule,
+    ProgressSpinnerModule,
   ],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
 })
 export class RegisterComponent {
-
   pathConst = PathConstant;
 
   constructor(
     private api: TaggyAppApiService,
-    private socialAuthService: SocialAuthService,
+    private socialAuth: SocialAuthService,
     private authService: AuthService,
     private router: Router
   ) {}
@@ -74,27 +77,37 @@ export class RegisterComponent {
     passwordMatchValidator('password', 'confirmPassword')
   );
 
+  registerLoading: boolean = false;
+  googleLoading: boolean = false;
+
   ngOnInit() {
     this.tryNavigateToDashboard();
-    this.socialAuthService.authState.subscribe((user) => {
-      if (!user) return;
-      this.api
-        .googleLogin({
-          provider: user.provider,
-          idToken: user.idToken,
-        })
-        .subscribe(async (response: HttpResponse<TokenDto>) => {
-          if (!response.ok || !response.body) {
-            console.error(response);
-            return;
-          }
-          this.authService.setTokens(response.body);
-          this.tryNavigateToDashboard();
-        });
-    });
+    this.socialAuth.authState
+      .pipe(
+        untilDestroyed(this),
+        filter((user) => user !== null)
+      )
+      .subscribe((user) => {
+        this.googleLoading = true;
+        this.api
+          .googleLogin({
+            provider: user.provider,
+            idToken: user.idToken,
+          })
+          .pipe(finalize(() => (this.googleLoading = false)))
+          .subscribe(async (response: HttpResponse<TokenDto>) => {
+            if (!response.ok || !response.body) {
+              console.error(response);
+              return;
+            }
+            this.authService.setTokens(response.body);
+            this.tryNavigateToDashboard();
+          });
+      });
   }
 
   onSubmit() {
+    this.registerLoading = true;
     this.api
       .register({
         userName: this.registerForm.value.userName!,
@@ -102,6 +115,7 @@ export class RegisterComponent {
         password: this.registerForm.value.password!,
         confirmPassword: this.registerForm.value.confirmPassword!,
       })
+      .pipe(finalize(() => (this.registerLoading = false)))
       .subscribe((response: HttpResponse<TokenDto>) => {
         if (!response.ok || !response.body) {
           console.error(response);

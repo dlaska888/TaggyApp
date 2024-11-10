@@ -3,10 +3,12 @@
       <h2>Group Info</h2>
       <div *ngIf="!editing">
          <p-button icon="pi pi-pencil" styleClass="p-0" [text]="true" [rounded]="true" (onClick)="editing = true" />
-         <p-button icon="pi pi-trash" styleClass="p-0" [text]="true" [rounded]="true" (onClick)="onDelete($event)" />
+         <p-button styleClass="p-0" [icon]="deleteLoading ? 'pi pi-spin pi-spinner' : 'pi pi-trash'"
+            [disabled]="deleteLoading" [text]="true" [rounded]="true" (onClick)="onDelete($event)" />
       </div>
       <div *ngIf="editing">
-         <p-button icon="pi pi-check" styleClass="p-0" [text]="true" [rounded]="true" [disabled]="groupEditForm.invalid"
+         <p-button styleClass="p-0" [icon]="editLoading ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
+            [disabled]="deleteLoading" [disabled]="groupEditForm.invalid || editLoading" [text]="true" [rounded]="true"
             (onClick)="onSubmit()" />
          <p-button icon="pi pi-times" styleClass="p-0" [text]="true" [rounded]="true" (onClick)="onCancel()" />
       </div>

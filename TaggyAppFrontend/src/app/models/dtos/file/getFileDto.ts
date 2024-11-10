@@ -1,10 +1,11 @@
-import { GetDto } from "../getDto";
-import { GetTagDto } from "../tag/getTagDto";
+import { GetDto } from '../getDto';
+import { GetTagDto } from '../tag/getTagDto';
 
 export class GetFileDto extends GetDto {
   name!: string;
   description?: string;
   url!: string;
+  thumbnailUrl?: string;
   contentType!: string;
   size!: number;
 

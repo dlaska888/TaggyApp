@@ -145,6 +145,7 @@ public class GroupUserService(
     {
         var group = await dbContext.Groups
             .Include(x => x.GroupUsers)
+            .ThenInclude(x => x.User)
             .FirstOrDefaultAsync(x => x.Id == groupId);
 
         if (group == null)

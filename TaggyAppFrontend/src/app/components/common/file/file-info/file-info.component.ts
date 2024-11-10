@@ -3,6 +3,7 @@ import {
   EventEmitter,
   Input,
   OnChanges,
+  OnInit,
   Output,
 } from '@angular/core';
 import { GetFileDto } from '../../../../models/dtos/file/getFileDto';
@@ -19,6 +20,9 @@ import { RxFormBuilder } from '@rxweb/reactive-form-validators';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
+import { filter, finalize } from 'rxjs';
+import { GroupStateService } from '../../../../services/groupStateService';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 @Component({
   selector: 'file-info',
@@ -32,39 +36,53 @@ import { ConfirmationService } from 'primeng/api';
     ButtonModule,
     ConfirmDialogModule,
     TagAutocompleteComponent,
+    ProgressSpinnerModule,
   ],
   templateUrl: './file-info.component.html',
   styleUrl: './file-info.component.scss',
 })
-export class FileInfoComponent implements OnChanges {
+export class FileInfoComponent implements OnInit, OnChanges {
   @Input() file!: GetFileDto;
   @Output() fileChange = new EventEmitter<GetFileDto>();
   @Output() fileDelete = new EventEmitter<void>();
 
-  group!: GetGroupDto;
-
   fileEdit!: UpdateFileDto;
   fileEditForm!: FormGroup;
   editing: boolean = false;
+  editLoading: boolean = false;
+  deleteLoading: boolean = false;
+
+  group!: GetGroupDto;
 
   constructor(
     private apiService: TaggyAppApiService,
+    private groupState: GroupStateService,
     private confirmationService: ConfirmationService,
     private fb: RxFormBuilder
   ) {}
 
+  ngOnInit(): void {
+    this.groupState
+      .getGroup$()
+      .pipe(filter((group) => group !== null))
+      .subscribe((group) => {
+        this.group = group;
+      });
+  }
+
   ngOnChanges(): void {
-    this.getGroup();
     this.initFileEditForm();
   }
 
   onSubmit() {
+    this.editLoading = true;
     this.apiService
       .updateFile(this.group.id, this.file.id, this.fileEdit)
+      .pipe(finalize(() => (this.editLoading = false)))
       .subscribe((response) => {
         this.file = response.body!;
-        this.fileChange.emit(this.file);
         this.editing = false;
+        this.groupState.refreshGroup();
       });
   }
 
@@ -74,7 +92,6 @@ export class FileInfoComponent implements OnChanges {
   }
 
   onDelete(event: Event) {
-    console.log(event);
     this.confirmationService.confirm({
       target: event.target as EventTarget,
       header: 'Delete File',
@@ -84,10 +101,12 @@ export class FileInfoComponent implements OnChanges {
       rejectIcon: 'none',
       rejectButtonStyleClass: 'p-button-text',
       accept: () => {
+        this.deleteLoading = true;
         this.apiService
           .deleteFile(this.group.id, this.file.id)
+          .pipe(finalize(() => (this.deleteLoading = false)))
           .subscribe(() => {
-            this.fileDelete.emit();
+            this.groupState.refreshGroup();
           });
       },
     });
@@ -97,12 +116,6 @@ export class FileInfoComponent implements OnChanges {
     this.fileEditForm.controls['tags'].setErrors(
       valid ? null : { invalid: true }
     );
-  }
-
-  private getGroup() {
-    this.apiService.getGroupById(this.file.groupId).subscribe((response) => {
-      this.group = response.body!;
-    });
   }
 
   private initFileEditForm() {

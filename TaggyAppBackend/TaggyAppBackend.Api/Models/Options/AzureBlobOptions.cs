@@ -9,4 +9,5 @@ public class AzureBlobOptions
     public int MaxParallelism { get; set; } = 8;
     public int SasTokenExpirationTime { get; set; } = 30;
     public string Container { get; set; } = "taggy-app-files";
+    public string ThumbnailContainer { get; set; } = "taggy-app-thumbs";
 }

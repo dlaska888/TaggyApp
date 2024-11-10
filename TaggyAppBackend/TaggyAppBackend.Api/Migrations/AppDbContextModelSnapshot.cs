@@ -236,6 +236,9 @@ namespace TaggyAppBackend.Api.Migrations
 
                     b.HasIndex("GroupId");
 
+                    b.HasIndex("UntrustedName", "GroupId")
+                        .IsUnique();
+
                     b.ToTable("Files");
                 });
 
@@ -261,6 +264,25 @@ namespace TaggyAppBackend.Api.Migrations
                     b.ToTable("Groups");
                 });
 
+            modelBuilder.Entity("TaggyAppBackend.Api.Models.Entities.Master.RefreshToken", b =>
+                {
+                    b.Property<string>("Token")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("Expiration")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Token");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens");
+                });
+
             modelBuilder.Entity("TaggyAppBackend.Api.Models.Entities.Master.Tag", b =>
                 {
                     b.Property<string>("Id")
@@ -282,6 +304,9 @@ namespace TaggyAppBackend.Api.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("GroupId");
+
+                    b.HasIndex("Name", "GroupId")
+                        .IsUnique();
 
                     b.ToTable("Tags");
                 });
@@ -330,13 +355,6 @@ namespace TaggyAppBackend.Api.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
-
-                    b.Property<string>("RefreshToken")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
-                    b.Property<DateTime>("RefreshTokenExp")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
@@ -464,6 +482,17 @@ namespace TaggyAppBackend.Api.Migrations
                     b.Navigation("Group");
                 });
 
+            modelBuilder.Entity("TaggyAppBackend.Api.Models.Entities.Master.RefreshToken", b =>
+                {
+                    b.HasOne("TaggyAppBackend.Api.Models.Entities.Master.TaggyUser", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("TaggyAppBackend.Api.Models.Entities.Master.Tag", b =>
                 {
                     b.HasOne("TaggyAppBackend.Api.Models.Entities.Master.Group", "Group")
@@ -489,6 +518,8 @@ namespace TaggyAppBackend.Api.Migrations
                     b.Navigation("Files");
 
                     b.Navigation("GroupUsers");
+
+                    b.Navigation("RefreshTokens");
                 });
 #pragma warning restore 612, 618
         }

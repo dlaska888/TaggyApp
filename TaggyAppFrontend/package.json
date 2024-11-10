@@ -27,6 +27,7 @@
     "@rxweb/reactive-form-validators": "^13.0.1",
     "angular-svg-round-progressbar": "^13.0.0",
     "jwt-decode": "^4.0.0",
+    "ngx-infinite-scroll": "^18.0.0",
     "primeflex": "^3.3.1",
     "primeicons": "^7.0.0",
     "primeng": "^17.18.9",
